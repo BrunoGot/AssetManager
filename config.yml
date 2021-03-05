@@ -1,0 +1,7 @@
+#Templates :
+File : "{AssetFolder}/{AssetType}/{AssetName}/{Task}/{Subtask}/Work_{Version}"
+Workspace : "$File"
+Render : "$Workspace/Render"
+Cache : "$Workspace/Cache"
+Textures : "$Workspace/Textures"
+Flip : "$Workspace/Filp"

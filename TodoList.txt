@@ -1,0 +1,31 @@
+todo list :
+ - Set a tab gui that separate tutorials from assets
+ - display size information of asset/caches/renders/flips
+ - implement open file button
+ - add comment text input
+ - set switch button to display flipbook or renders
+ - links flips/renders according to the selecvted version
+
+ Config template rules :
+    keywords : $AssetType, $AssetName, $Task, $Subtask, $Version
+    -Define Asset Folder
+    ex : Asset Folder = "C:\Users\Natspir\NatspirProd\03_WORK_PIPE\01_ASSET_3D"
+    -Define template :
+      file = "AssetFolder/AssetType/AssetName/Task/Subtask/Version/"
+      workspace = file
+      Render = Workspace/Render
+      Cache = Workspace/Cache
+      Textures = Workspace/Textures
+      Flip = Workspace/Textures
+
+      ##################
+      template 2
+      Asset Folder = "C:\Users\Natspir\NatspirProd\03_WORK_PIPE\01_ASSET_3D"
+      Workspace = "AssetFolder/AssetType/AssetName/Workspace"
+      Render = Workspace/Render/Task/Subtask/Version
+      cache = Workspace/cache/Task/Subtask/Version
+
+ todo :
+  - definir un template yml
+  - le recuperer avec lucidity
+  -lire les donnés depuis le file system
