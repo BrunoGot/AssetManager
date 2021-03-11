@@ -8,11 +8,22 @@ config = "{assetType}/{assetName}/{workspace}/{task}/{subtask}/{versions}"
 
 asset_dir = r"C:\Users\Natspir\NatspirProd\03_WORK_PIPE\01_ASSET_3D"
 
-class file_system():
+class file_system_meta(type):
+    '''Used to implement singleton'''
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls]=instance
+        return cls._instances[cls]
+
+class file_system(metaclass=file_system_meta):
     #asset_list = []
-    assets = {}  # dic with {assetname, asset}
     def __init__(self):
+        self.assets = {}  # dic with {assetname, asset}
         self.parse_asset_list()
+
         #self.config = config.Config("default")
 
     def get_assets(self):
