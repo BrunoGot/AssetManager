@@ -17,6 +17,7 @@ class MyWidget(QtWidgets.QWidget):
 
         #datas
         self.file_system = fs.file_system()
+        self.file_system.parse_asset_list()
         self.assets = self.file_system.get_assets() #get the list of all assets to display
 
         #GUI
@@ -138,9 +139,11 @@ class asset_view(QtWidgets.QWidget):
         self.h_layout = QtWidgets.QHBoxLayout()
         self.info_layout = QtWidgets.QVBoxLayout()
         self.label_type = QtWidgets.QLabel()
+        self.label_total_size = QtWidgets.QLabel()
 
         #self.info_layout.addWidget(self.label_title)
         self.info_layout.addWidget(self.label_type)
+        self.info_layout.addWidget(self.label_total_size)
         #handle version layout
         self.version_dropdown = QtWidgets.QComboBox()
         self.version_dropdown.activated[str].connect(self.select_version)
@@ -214,7 +217,10 @@ class asset_view(QtWidgets.QWidget):
         self.asset = asset
         self.label_title.setText(asset.name)
         self.label_type.setText("Type : "+asset.type)
-
+        size = asset.total_size/(1024*1024)
+        size = round(size,2)
+        print("size  = "+str(size) )
+        self.label_total_size.setText("Total size : "+f"{size:,}")
         for i in asset.tasks:
             print(i)
             task_button = self.create_task_button(i)
@@ -227,18 +233,16 @@ class asset_view(QtWidgets.QWidget):
         self.refresh_versions()
         #update the thumbnail according to the selecte version
 
-        #update the flip frames
+        #update the flip& render frames
         fpath = asset.CurrentFlipDir() #return the path of the flip directory for  the current task/subtask/work
-        '''if(os.path.exists(fpath)):
-            frames = os.listdir(fpath)
-            self.flip_button.setFrames(basePath=fpath, frames=frames)'''
-        self.load_frames_for_viewer(self.flip_button, fpath)
-        #update render frames
         rpath = asset.current_render_dir()
-        self.load_frames_for_viewer(self.render_button, rpath)
+        self.update_buttons_viewer(fpath, rpath)
 
-        '''if(os.path.exists(rpath)):
-            frames = os.listdir(fpath)'''
+    def update_buttons_viewer(self, fpath, rpath):
+        # update the flip frames
+        self.load_frames_for_viewer(self.flip_button, fpath)
+        # update render frames
+        self.load_frames_for_viewer(self.render_button, rpath)
 
     def load_frames_for_viewer(self, anim_button, frame_path):
         """check if the folder is correct and load the frames for the anim buttons"""
@@ -332,6 +336,10 @@ class asset_view(QtWidgets.QWidget):
     def select_version(self, version):
         print("version selected = "+version)
         self.asset.set_current_version(version)
+        fpath = self.asset.CurrentFlipDir() #return the path of the flip directory for  the current task/subtask/work
+        rpath = self.asset.current_render_dir()
+        self.update_buttons_viewer(fpath, rpath)
+
 
     def open_folder(self):
         self.asset.open_folder()

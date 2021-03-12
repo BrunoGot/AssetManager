@@ -5,6 +5,14 @@ import lucidity
 class Config():
 
     @property
+    def asset_path(self):
+        return self.__templates["AssetPath"]
+
+    @property
+    def project_directory(self):
+        return self.__templates["Project"]
+
+    @property
     def asset_file_path(self):
         return self.__templates["File"]
 
@@ -33,7 +41,7 @@ class Config():
         return self.__name
 
     def __init__(self, name, config_path = "config.yml"):
-        self.key_value = ["$File", "$Workspace", "$Caches", "$Render", "$Flip", "$Textures"]
+        self.key_value = ["$Project", "$AssetPath", "$File", "$Workspace", "$Caches", "$Render", "$Flip", "$Textures"]
         #dictionary of lucidity template
         self.__name = name
         self.__templates = self.parsing_config_file(config_path)
@@ -48,17 +56,18 @@ class Config():
 
         print("key : value")
         for key, value in yaml_content.items():
-            print(f"{key}: {value}")
+            #print(f"{key}: {value}")
             if("$" in value): #detect a keyvalue in the string
                 for i in self.key_value: #determine wich key is it
                     if i in value: #if the detected key has been found
                         detected_key = i.replace("$", '') #delete the "$" symbol
                         yaml_content[key] = value.replace(i,yaml_content[detected_key] ) #assign the new value
-                        print("new value = "+yaml_content[key])
+                        #print("new value = "+yaml_content[key])
             templates[key] = lucidity.Template(key, yaml_content[key])
         return templates
 
     def list_templates(self):
+        print("##list templates : ")
         for key, value in self.__templates.items():
             print(f"{key}: {value.pattern}")
     #test lucidity
