@@ -7,7 +7,7 @@ import file_system as fs
 import View.AnimButton as animBut
 
 
-class MyWidget(QtWidgets.QWidget):
+class MyWidget( QtWidgets.QWidget):
     lines =4
     row = 4
     index = 0
@@ -25,31 +25,10 @@ class MyWidget(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self)
 
         lib_layout = self.lib_view() #crea  te the library view
-        #self.asset_views = asset_view(self)
-        #print(str(type(self.asset_view)))
-
-        #l = self.asset_view.get_view()
-        #stack1 = QtWidgets.QWidget()
-        #self.asset_stack_layout = QtWidgets.QWidget()
-
-        #stack1.setLayout(lib_layout)
-        #self.asset_stack_layout.setLayout(l)
-
-        #self.stack = QtWidgets.QStackedWidget(self)
-        #self.stack.addWidget(stack1)
-        #self.stack.addWidget(self.asset_stack_layout)
-
 
         main_layout = QtWidgets.QVBoxLayout()
-        #next_button = QtWidgets.QPushButton("test")
-        #next_button.clicked.connect(lambda : self.change_view("test"))
         main_layout.addLayout(lib_layout)
 
-        #self.menu = QtWidgets.QMenu("test")
-        #self.menu.addAction("test")
-        #main_layout.addWidget(self.menu)
-        #main_layout.addWidget(next_button)
-        #main_layout.addWidget(self.menu_bar)
         self.setLayout(main_layout)
 
 
