@@ -6,6 +6,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 import file_system as fs
 import View.AnimButton as animBut
 
+
 class MyWidget(QtWidgets.QWidget):
     lines =4
     row = 4
@@ -43,8 +44,14 @@ class MyWidget(QtWidgets.QWidget):
         #next_button = QtWidgets.QPushButton("test")
         #next_button.clicked.connect(lambda : self.change_view("test"))
         main_layout.addLayout(lib_layout)
+
+        #self.menu = QtWidgets.QMenu("test")
+        #self.menu.addAction("test")
+        #main_layout.addWidget(self.menu)
         #main_layout.addWidget(next_button)
+        #main_layout.addWidget(self.menu_bar)
         self.setLayout(main_layout)
+
 
     def change_view(self, asset):
         print("change_view asset type : "+str(type(asset)))
