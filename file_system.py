@@ -18,13 +18,24 @@ class file_system_meta(type):
             cls._instances[cls]=instance
         return cls._instances[cls]
 
+class Software():
+    """over layer to describing differnet software used with the asset"""
+    @property
+    def ext(self):
+        return self.__ext
+
+    def __init__(self, name, ext):
+        self.__name = name
+        self.__ext = ext
+        #self.__path
+
 class file_system(metaclass=file_system_meta):
     #asset_list = []
     def __init__(self):
         self.assets = {}  # dic with {assetname, asset}
         self.__configs = {} #dic containing different pipeline configuration files (that allow to handle different projects) {configName, configClass}
-        default_config_name = "default"
-        self.__configs[default_config_name] = config.Config(default_config_name)
+        self.default_config_name = "default"
+        self.__configs[self.default_config_name] = config.Config(self.default_config_name)
         #self.config = config.Config("default")
 
     def get_assets(self):
@@ -52,14 +63,18 @@ class file_system(metaclass=file_system_meta):
             print("try parsing path : "+file_path)
 
             print(config.asset_file_path.pattern)
-            datas = config.asset_file_path.parse(os.path.dirname(file_path))
+            asset_dir_datas = config.asset_file_path.parse(file_path)
+            asset_file_name_data = config.asset_file_name.parse(os.path.basename(file_path))
             #file_datas = file_path.split("\\")
-            asset_type = datas["AssetType"]
-            asset_name = datas["AssetName"]
-            asset_task = datas["Task"]
+            asset_type = asset_dir_datas["AssetType"]
+            asset_name = asset_dir_datas["AssetName"]
+            asset_task = asset_dir_datas["Task"]
             print("parsing asset 'asset_name', asset_type = "+asset_type+", asset_task = "+str(asset_task))
-            asset_subtask = datas["Subtask"]
-            asset_work = datas["Version"]
+            asset_subtask = asset_dir_datas["Subtask"]
+            asset_work = asset_dir_datas["Version"]
+            asset_file_name = asset_file_name_data["AssetFileName"]
+            asset_ext = asset_file_name_data["Ext"]
+            print(asset_file_name +asset_ext )
 
             #looking for thumbnail :
             asset_thumbnail = ""
@@ -81,10 +96,10 @@ class file_system(metaclass=file_system_meta):
                 if(asset_thumbnail):
                     print("####asset_thumbnail = "+asset_thumbnail)
                 new_asset = asset(asset_name,asset_type)
-                new_asset.add_task(asset_task, asset_subtask, asset_work, asset_thumbnail)
+                new_asset.add_task(asset_task, asset_subtask, asset_work,asset_file_name, asset_ext, asset_thumbnail)
                 self.assets[asset_name]=new_asset
             else : #if the asset already exist
-                self.assets[asset_name].add_version(asset_task, asset_subtask, asset_work, asset_thumbnail)
+                self.assets[asset_name].add_version(asset_task, asset_subtask, asset_work, asset_file_name, asset_ext,asset_thumbnail)
 
         for a in self.assets.keys():
              print("asset : "+a+" tasks = "+str(self.assets[a].tasks.keys()))
@@ -109,22 +124,21 @@ class file_system(metaclass=file_system_meta):
     def load_asset(self):
         pass
 
-    def open_folder(self, asset_name, asset_type, asset_task, asset_subtask, subtask_version,config_file="default"):
+    def open_folder(self, datas,config_file="default"):
         config = self.__configs[config_file]
         asset_dir = config.project_directory.pattern
-        datas = {
-            'AssetType' : asset_type,
-            'AssetName' : asset_name,
-            'Task' : asset_task,
-            'Subtask' : asset_subtask,
-            'Version' : subtask_version}
+
         print("file_path = config.asset_file_path = "+config.asset_file_path.pattern)
         file_path = config.asset_file_path.format(datas)
-        folders = [asset_dir,asset_type, asset_name, asset_task, asset_subtask, subtask_version]
+        folders = [asset_dir,os.path.dirname(file_path)]
 
         path = os.path.join(*folders)
-        # path = os.path.realpath(path)
-        #path = path.replace("\\", "/")
+        os.system(f'start {path}')
+
+    def open_file(self, datas, config_name = 'default'):
+        config = self.__configs[config_name]
+        print("datas = "+str(datas))
+        path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas) + os.sep + config.asset_file_name.format(datas)
         os.system(f'start {path}')
 
     def get_render_directory(self,datas,config_name='default'):
@@ -162,22 +176,67 @@ class file_system(metaclass=file_system_meta):
 
     def get_size(self, path):
         total_size = 0
+        #path=path.replace("\\", "/")
+        print("get_size path = "+path)
         for dirpath, dirnames, filenames in os.walk(path):
             for i in filenames:
+                #print("filename = "+i)
                 f = os.path.join(dirpath,i)
+                #print("f = "+f)
                 total_size += os.path.getsize(f)
         return total_size
+
+    def get_version_size(self, datas, config_name = "default"):
+        config = self.__configs[config_name]
+        path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas)
+        return self.get_size(path)
 
     def get_asset_size(self, datas, config_name = "default"):
         config = self.__configs[config_name]
         path = config.project_directory.pattern+os.sep+ config.asset_path.format(datas)
         return self.get_size(path)
 
+    def detect_software(self, ext, config_name = "default"):
+        """return the software associated to the selected verion in datas"""
+        software = None
+        print("ext = "+ext)
+        software = self.get_software(ext)
+        return software
+
+    def get_software(self, ext):
+        """return the software name according to its extenxion"""
+        soft_name = ""
+        soft = None
+        print("ext = "+ext)
+        if(ext == "hipnc"):
+            soft_name = "Houdini"
+        elif(ext == "blend"):
+            soft_name = "Blender"
+        if(soft_name!=""):
+            soft = Software(soft_name, ext)
+        return soft
+
+    def get_config_file(self):
+        """return the current config"""
+        return self.__configs[self.default_config_name]
+
+    def save_comment(self, datas, text, config_name="default"):
+        """write the text in a text file"""
+        config = self.__configs[config_name]
+        file_name = "comment.txt" #todo:move it in the config section
+        path = config.project_directory.pattern+os.sep+config.asset_file_path.format(datas)+os.sep+file_name
+        f = open(path, "w")
+        f.write(text)
+        f.close()
+        print("code load comment x)")
+
+
 class Task():
-    def __init__(self, asset_name, task_name, subtask_name, version, thumbnail=""):
+    def __init__(self, asset_type, asset_name, task_name, subtask_name, version,file_name, ext, thumbnail=""):
         self.__asset_name = asset_name
         self.__name = task_name
-        subtask = Subtask(asset_name, task_name, subtask_name, version, thumbnail)
+        self.__asset_type = asset_type
+        subtask = Subtask(asset_type,asset_name, task_name, subtask_name, version,file_name, ext, thumbnail)
         # dictionary containing the subtask with their name : {subtask_name,subtask }
         self.subtasks = {subtask_name : subtask }
         #self.subtasks[] = subtask
@@ -190,19 +249,19 @@ class Task():
     def name(self):
         return self.__name
 
-    def add_subtask(self, subtask_name, version, thumbnail):
+    def add_subtask(self, subtask_name, version,file_name, ext, thumbnail):
         """add a subtask if it doesn't already exist"""
         if(subtask_name not in self.subtasks.keys()):
-            subtask = Subtask(self.__asset_name, self.__name,subtask_name, version, thumbnail)
+            subtask = Subtask(self.__asset_type, self.__asset_name, self.__name,subtask_name, version,file_name, ext, thumbnail)
             self.subtasks[subtask_name] = subtask
 
-    def add_version(self, subtask_name, version, thumbnail):
+    def add_version(self, subtask_name, version,file_name, ext, thumbnail):
         #print("tasks : add version "+subtask_name+", "+version)
         """create subtask if it doesn't exist, then add a version"""
         if(subtask_name not in self.subtasks.keys()):
-            self.add_subtask(subtask_name, version, thumbnail)
+            self.add_subtask(subtask_name, version,file_name, ext, thumbnail)
         else:
-            self.subtasks[subtask_name].add_version(version, thumbnail)
+            self.subtasks[subtask_name].add_version(version, file_name, ext,thumbnail)
 
     def get_subtasks(self):
         return self.subtasks
@@ -225,43 +284,62 @@ class Task():
         return thumbnail
 
 class Version():
-    def __init__(self, asset_name,task,subtask , name, thumbnail):
+    def __init__(self, asset_type ,asset_name,task,subtask , name,file_name, ext, thumbnail):
         self.__name = name
+        self.__asset_type = asset_type
         self.__asset_name = asset_name
         self.__task = task
         self.__subtask = subtask
         self.thumbnail = thumbnail
         self.comment = ""
+        self.__file_name = file_name  # the name of the asset file
+        self.__ext = ext  # the name of the extension
+        datas = self.datas
+        self.file_system = file_system()
+        self.__software = self.file_system.detect_software(ext)
+
+
     def name(self):
         return self.__name
 
     def get_last_thumbnail(self):
         return self.thumbnail
 
+    def set_comment(self, text):
+        self.__name = text
+
+    @property
+    def software(self):
+        return self.__software
+
     @property
     def datas(self):
         return {
+            'AssetType' : self.__asset_type,
             'AssetName' : self.__asset_name,
             'Task' : self.__task,
             'Subtask' : self.__subtask,
-            'Version' : self.__name
+            'Version' : self.__name,
+            'AssetFileName' : self.__file_name,
+            'Ext' : self.__ext
         }
 
 class Subtask():
     #todo : handle thumbnail for subtasks and new subtasks
-    def __init__(self, asset_name, task_name, subtask_name, version, thumbnail=""):
+    def __init__(self, asset_type, asset_name, task_name, subtask_name, version, file_name, ext, thumbnail=""):
+        self.__asset_type = asset_type
         self.__name = subtask_name
         self.__task_name = task_name
         self.__asset_name = asset_name
-        self.selected_version = Version(asset_name, task_name, subtask_name, version ,thumbnail)
+        self.selected_version = Version(asset_type, asset_name, task_name, subtask_name, version, file_name, ext, thumbnail)
         self.__versions = {}
         self.__versions[version] = self.selected_version
         self.thumbnail=self.selected_version.thumbnail
 
-    def add_version(self, version_name, thumbnail):
+    def add_version(self, version_name, file_name, ext,thumbnail):
         #print("add version "+version)
         if version_name not in self.__versions.keys():
-            version = Version(self.__asset_name, self.__task_name, self.__name,version_name,thumbnail)
+            version = Version(self.__asset_type, self.__asset_name, self.__task_name, self.__name,version_name,file_name, ext,thumbnail)
             self.__versions[version_name]=version
 
     def get_versions(self):
@@ -304,12 +382,12 @@ class asset():
         self.__thumbnails = ""
         self.file_system = file_system()
 
-    def add_task(self, task_name, subtask_name, version, thumbnails_path):
+    def add_task(self, task_name, subtask_name, version,file_name, ext, thumbnails_path):
         """Add a task if it doesn't exist. Return the new task."""
         print("####add task thumbnails_path = "+thumbnails_path)
         new_task = None
         if task_name not in self.tasks.keys(): #if it's a new task
-            new_task = Task(self.name, task_name, subtask_name, version, thumbnails_path)
+            new_task = Task(self.type, self.name, task_name, subtask_name, version,file_name, ext, thumbnails_path)
             self.tasks[task_name]=new_task #add the new task
             if thumbnails_path: #don't override thumbnail when its null
                 print("##Add task thumbnails_path = " + thumbnails_path)
@@ -323,14 +401,14 @@ class asset():
         else: #if the task doesn't exist yet, create it and create the subtask
             self.add_task(task_name, subtask_name, version, thumbnail)'''
 
-    def add_version(self, task_name, subtask_name, version, asset_thumbnail):
+    def add_version(self,task_name, subtask_name, version, file_name, ext,asset_thumbnail):
         """create the task if not exist, then add the version to the task"""
         if asset_thumbnail: #don't overide the thumbnail path if it's empty
             print("##Add version asset_thumbnail = "+asset_thumbnail)
         #print("asset : add_version "+ version)
         if(task_name not in self.tasks.keys()):
-            self.add_task(task_name, subtask_name, version, asset_thumbnail)
-        self.tasks[task_name].add_version(subtask_name, version, asset_thumbnail)
+            self.add_task(task_name, subtask_name, version, file_name, ext,asset_thumbnail)
+        self.tasks[task_name].add_version(subtask_name, version, file_name, ext,asset_thumbnail)
 
         """#self.task. (task)
         if(task in self.tasks): #if the task already exist, add the subtask
@@ -368,7 +446,13 @@ class asset():
 
 
     def open_folder(self):
-        self.file_system.open_folder(self.name, self.type, self.current_task.name(),self.current_task.current_subtask().name(), self.current_task.current_subtask().selected_version.name())
+        self.file_system.open_folder(self.current_version.datas)
+
+    def open_file(self):
+        datas = self.current_version.datas
+        datas['AssetType'] = self.type
+        print("software = "+self.current_version.software.ext)
+        self.file_system.open_file(datas)
 
     def CurrentFlipDir(self):
         """return the flip/render folder path of the current task/subtask/work
@@ -410,6 +494,9 @@ class asset():
 
     def thumbnail(self):
         return self.get_last_thumbnail()
+    def save_comment(self, text):
+        datas = self.current_version.datas
+        self.file_system.save_comment(datas, text)
 
 if __name__ == "__main__":
     f = file_system()

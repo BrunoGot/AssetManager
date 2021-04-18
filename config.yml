@@ -1,7 +1,8 @@
 #Templates :
+AssetFileName : "{AssetFileName}.{Ext}"
 Project : "C:/Users/Natspir/NatspirProd/03_WORK_PIPE/01_ASSET_3D"
 AssetPath : "{AssetType}\\{AssetName}"
-File : "{AssetType}\\{AssetName}\\{Task}\\{Subtask}\\{Version}"
+File : "$AssetPath\\{Task}\\{Subtask}\\{Version}"
 Workspace : "$File"
 Render : "$Workspace/Render"
 Cache : "$Workspace/Cache"

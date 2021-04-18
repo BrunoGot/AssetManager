@@ -1,3 +1,5 @@
+#todo : generate conformed thumbnail automatically if it's not already exist in a thumbnail folder
+
 from PySide2 import QtGui, QtCore, QtWidgets
 import os
 
@@ -24,7 +26,7 @@ class AnimButton(QtWidgets.QPushButton):
         #self.__timer.start()
 
     def playAnim(self,index):
-        print("cliiiick")
+        #print("cliiiick")
         if(self.__isStarted==False):
             self.__timer.start()
             self.__isStarted=True
@@ -56,10 +58,12 @@ class AnimButton(QtWidgets.QPushButton):
             pix = QtGui.QPixmap(basepath +"/"+f )
             #print(basepath +"/"+f)
 
+
+            # todo :crop the f*cking image pix = pix.scaled(1000,100)
+
             #if it's the first frame, extract the size
             if(i==0):
                 self.__frameSize = pix.size()
-
             #convert to QIcon
             im = QtGui.QIcon(pix)
             processed.append(im)
@@ -85,6 +89,7 @@ class AnimButton(QtWidgets.QPushButton):
 
     def setSize(self, width, height):
         self.setIconSize(QtCore.QSize(width,height))
+        #self.setSize()
         self.setGeometry(0, 0, width, height)
 
 
