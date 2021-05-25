@@ -13,6 +13,10 @@ import lucidity
 class Config():
 
     @property
+    def json_engine(self):
+        return self.__templates["JSONEngine"]
+
+    @property
     def asset_path(self):
         return self.__templates["AssetPath"]
 
@@ -52,7 +56,7 @@ class Config():
     def name(self):
         return self.__name
 
-    def __init__(self, name, config_path = "../config.yml"):
+    def __init__(self, name, config_path = "../Configurations/default_Config.yml"):
         self.key_value = ["$Project", "$AssetPath", "$File", "$Workspace", "$Caches", "$Render", "$Flip", "$Textures", "$AssetFileName"] #
         #dictionary of lucidity template
         self.__name = name

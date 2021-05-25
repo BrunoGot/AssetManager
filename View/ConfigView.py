@@ -1,21 +1,20 @@
 #windows to edit the configuration file
+import os
 import file_system as fs
 from PySide2 import QtCore, QtGui, QtWidgets
 
 class MainView(QtWidgets.QWidget):
     def __init__(self):
-
         #GUI
         QtWidgets.QWidget.__init__(self)
         self.file_system = fs.file_system()
         self.init_GUI()
         self.set_default_values()
 
-
     def init_GUI(self):
         self.main_layout = QtWidgets.QVBoxLayout()
 
-        self.configuration_file_label = QtWidgets.QLabel("Configuration File")
+        self.configuration_file_label = QtWidgets.QLabel("Configurations File")
         self.main_layout.addWidget(self.configuration_file_label)
         self.description_label = QtWidgets.QLabel("Configure here the template of your pipeline")
         self.main_layout.addWidget(self.description_label)
@@ -27,9 +26,11 @@ class MainView(QtWidgets.QWidget):
         #namle of the configuration
         self.config_name_layout = QtWidgets.QHBoxLayout()
         self.config_name_label = QtWidgets.QLabel("Config Name : ")
-        self.config_name_input = QtWidgets.QLineEdit()
+        self.config_name_dropdown = QtWidgets.QComboBox()
+        #self.config_name_dropdown.addItem("default")
+        self.populate_dropdown_config()
         self.config_name_layout.addWidget(self.config_name_label)
-        self.config_name_layout.addWidget(self.config_name_input)
+        self.config_name_layout.addWidget(self.config_name_dropdown)
         self.main_layout.addLayout(self.config_name_layout)
 
         #Asset File Name : name of the file
@@ -116,10 +117,44 @@ class MainView(QtWidgets.QWidget):
 
     def set_default_values(self):
         """parse the file, foreach line, assign the value to the right parameter"""
-        config = self.file_system.get_config_file()
-        print(config.asset_path.pattern)
+        #get the default config file
 
+        config_name = self.file_system.default_config_name
+        index = 0
+        for i in range(self.config_name_dropdown.count()):
+            if(self.config_name_dropdown.itemText(i)==config_name):
+                index = i
+            print(self.config_name_dropdown.itemText(i) +" - "+config_name)
+        self.config_name_dropdown.setCurrentIndex(index)
+
+        #self.config_name_input.setText(config.name)
+        config = self.file_system.get_config_file()
+        self.update_configuration(config)
+
+    def populate_dropdown_config(self):
+        """used to populate the dropdown config name """
+        print("path = "+__file__)
+        files = os.listdir(self.file_system.config_folder_path)
+        configs = {}
+        for f in files:
+            config_name = f.replace(".yml", "")
+            configs[config_name] = f
+        self.config_name_dropdown.addItems(configs.keys())
+
+    def on_select_items(self,index):
+        """callback for when the drop down list is changing"""
+        #todo:code this part
+        self.file_system.set_config(index)
+        config = self.file_system.get_config()
+        self.update_configuration(config)
+
+    def update_configuration(self, config):
         self.project_input.setText(config.project_directory.pattern)
         self.asset_file_name_input.setText(config.asset_file_name.pattern)
         self.asset_path_input.setText(config.asset_path.pattern)
-
+        self.file_input.setText(config.asset_file_path.pattern)
+        self.workspace_input.setText(config.workspace_path.pattern)
+        self.render_input.setText(config.render_path.pattern)
+        self.flip_input.setText(config.flip_path.pattern)
+        self.cache_input.setText(config.caches_path.pattern)
+        self.texture_input.setText(config.textures_path.pattern)

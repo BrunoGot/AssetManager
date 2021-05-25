@@ -16,7 +16,7 @@ class MainWindow(QtWidgets.QMainWindow):
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip("Exit Application")
         exitAction.triggered.connect(self.close)
-        #-
+        #
         option_action = QtWidgets.QAction(QtGui.QIcon("exit.png"), '&Options', self)
         option_action.setShortcut('Ctrl+O')
         option_action.setStatusTip("Options")

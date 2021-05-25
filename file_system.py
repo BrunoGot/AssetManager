@@ -1,6 +1,7 @@
 import os
 import glob
 import config
+from software import *
 #config = "{assetType}/{assetName}/{workspace}/{task}/{subtask}/{versions}"
 #"Buildings\Tower1\Modelisation\Modelisation\work_v003"
 
@@ -18,23 +19,19 @@ class file_system_meta(type):
             cls._instances[cls]=instance
         return cls._instances[cls]
 
-class Software():
-    """over layer to describing differnet software used with the asset"""
-    @property
-    def ext(self):
-        return self.__ext
-
-    def __init__(self, name, ext):
-        self.__name = name
-        self.__ext = ext
-        #self.__path
-
 class file_system(metaclass=file_system_meta):
     #asset_list = []
+    @property
+    def config_folder_path(self):
+        return self.__config_folder_path
+
     def __init__(self):
+        #folder containing the configuration files
+        self.__config_folder_path = os.path.dirname(__file__)+r"/Configurations/"
+
         self.assets = {}  # dic with {assetname, asset}
         self.__configs = {} #dic containing different pipeline configuration files (that allow to handle different projects) {configName, configClass}
-        self.default_config_name = "default"
+        self.default_config_name = "default_Config"
         self.__configs[self.default_config_name] = config.Config(self.default_config_name)
         #self.config = config.Config("default")
 
@@ -42,7 +39,7 @@ class file_system(metaclass=file_system_meta):
         print("get_assets = "+str(len(self.assets)))
         return self.assets
 
-    def parse_asset_list(self, config_name = "default"):
+    def parse_asset_list(self, config_name = "default_Config"):
         """todo: parse the assets folder using the config file"""
         #load the configuration file to parse the asset in the project directory
         config = self.__configs[config_name]
@@ -124,30 +121,30 @@ class file_system(metaclass=file_system_meta):
     def load_asset(self):
         pass
 
-    def open_folder(self, datas,config_file="default"):
+    def open_folder(self, datas,config_file="default_Config"):
         config = self.__configs[config_file]
         asset_dir = config.project_directory.pattern
 
         print("file_path = config.asset_file_path = "+config.asset_file_path.pattern)
         file_path = config.asset_file_path.format(datas)
-        folders = [asset_dir,os.path.dirname(file_path)]
+        folders = [asset_dir,file_path]
 
         path = os.path.join(*folders)
         os.system(f'start {path}')
 
-    def open_file(self, datas, config_name = 'default'):
+    def open_file(self, datas, config_name = "default_Config"):
         config = self.__configs[config_name]
         print("datas = "+str(datas))
         path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas) + os.sep + config.asset_file_name.format(datas)
         os.system(f'start {path}')
 
-    def get_render_directory(self,datas,config_name='default'):
+    def get_render_directory(self,datas,config_name="default_Config"):
         config = self.__configs[config_name]
         path = config.project_directory.pattern + os.sep + config.render_path.format(datas)
         path = path.replace("\\", "/")
         return  path
 
-    def get_flip_directory(self, datas,config_name='default'):
+    def get_flip_directory(self, datas,config_name="default_Config"):
         config = self.__configs[config_name]
         path =config.project_directory.pattern+os.sep+ config.flip_path.format(datas)
         path = path.replace("\\","/")
@@ -186,17 +183,17 @@ class file_system(metaclass=file_system_meta):
                 total_size += os.path.getsize(f)
         return total_size
 
-    def get_version_size(self, datas, config_name = "default"):
+    def get_version_size(self, datas, config_name = "default_Config"):
         config = self.__configs[config_name]
         path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas)
         return self.get_size(path)
 
-    def get_asset_size(self, datas, config_name = "default"):
+    def get_asset_size(self, datas, config_name = "default_Config"):
         config = self.__configs[config_name]
         path = config.project_directory.pattern+os.sep+ config.asset_path.format(datas)
         return self.get_size(path)
 
-    def detect_software(self, ext, config_name = "default"):
+    def detect_software(self, ext, config_name = "default_Config"):
         """return the software associated to the selected verion in datas"""
         software = None
         print("ext = "+ext)
@@ -220,7 +217,7 @@ class file_system(metaclass=file_system_meta):
         """return the current config"""
         return self.__configs[self.default_config_name]
 
-    def save_comment(self, datas, text, config_name="default"):
+    def save_comment(self, datas, text, config_name="default_Config"):
         """write the text in a text file"""
         config = self.__configs[config_name]
         file_name = "comment.txt" #todo:move it in the config section
@@ -228,8 +225,25 @@ class file_system(metaclass=file_system_meta):
         f = open(path, "w")
         f.write(text)
         f.close()
-        print("code load comment x)")
 
+    def load_comment(self, datas, config_name="default_Config"):
+        config = self.__configs[config_name]
+        file_name = "comment.txt" #todo:move it in the config section
+        path = config.project_directory.pattern+os.sep+config.asset_file_path.format(datas)+os.sep+file_name
+        text = ""
+        if os.path.exists(path):
+            f = open(path, "r")
+            text = f.read()
+            f.close()
+        return text
+
+    def get_engine_json(self,datas, config_name="default_Config"):
+        config = self.__configs[config_name]
+        path = config.project_directory.pattern + os.sep + config.json_engine.format(datas)
+        print("json path = "+path)
+        return path
+
+######################"
 
 class Task():
     def __init__(self, asset_type, asset_name, task_name, subtask_name, version,file_name, ext, thumbnail=""):
@@ -294,9 +308,14 @@ class Version():
         self.comment = ""
         self.__file_name = file_name  # the name of the asset file
         self.__ext = ext  # the name of the extension
-        datas = self.datas
         self.file_system = file_system()
         self.__software = self.file_system.detect_software(ext)
+
+        #set the path to get the json software data
+        path = self.file_system.get_engine_json(self.datas)
+        print("JSON PATH = "+path)
+        self.__software.set_json_path(path)
+        #datas = self.datas
 
 
     def name(self):
@@ -321,8 +340,19 @@ class Version():
             'Subtask' : self.__subtask,
             'Version' : self.__name,
             'AssetFileName' : self.__file_name,
-            'Ext' : self.__ext
+            'Ext' : self.__ext,
+            'Engine_name' : self.__software.name
         }
+
+    def get_caches_datas(self):
+        caches = self.software.read_caches_datas()
+        return caches
+
+    def update_datas(self):
+        pass
+        #update the json_engine with the last datas in the software (caches, textures)
+        #self.engine.update_datas
+        #self.enfine.get_datas
 
 class Subtask():
     #todo : handle thumbnail for subtasks and new subtasks
@@ -497,6 +527,18 @@ class asset():
     def save_comment(self, text):
         datas = self.current_version.datas
         self.file_system.save_comment(datas, text)
+
+    def get_comment(self):
+        datas = self.current_version.datas
+        return self.file_system.load_comment(datas)
+    """def get_caches(self):
+        return the list of caches of the current asset file
+    """
+    def update_caches_datas(self):
+        print("update caches datas")
+        caches = self.current_version.get_caches_datas()
+        return caches
+
 
 if __name__ == "__main__":
     f = file_system()

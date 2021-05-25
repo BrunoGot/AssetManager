@@ -182,6 +182,10 @@ class asset_view(QtWidgets.QWidget):
         self.viewer_tab = QtWidgets.QTabWidget()
         self.flip_button = animBut.AnimButton() #QtWidgets.QPushButton()
         self.render_button = animBut.AnimButton() #QtWidgets.QPushButton()
+        self.caches_tab = QtWidgets.QWidget()#animBut.AnimButton() #QtWidgets.QPushButton()
+        self.caches_layout = self.draw_caches_layout()
+        self.caches_tab.setLayout(self.caches_layout)
+        self.dependancy_layout = animBut.AnimButton() #QtWidgets.QPushButton()
         #thumbnail = self.asset.thumbnail()
         #if not thumbnail:
         thumbnail = 'Icons/NoPreview.jpg'
@@ -189,9 +193,13 @@ class asset_view(QtWidgets.QWidget):
         icon_size = QtCore.QSize(384,384)
         self.flip_button = self.set_viewer_button(self.flip_button, self.icon, icon_size)
         self.render_button = self.set_viewer_button(self.render_button, self.icon, icon_size)
+        #self.caches_layout = self.set_viewer_button(self.caches_layout, self.icon, icon_size)
+        self.dependancy_layout = self.set_viewer_button(self.dependancy_layout, self.icon, icon_size)
         self.h_layout.addWidget(self.viewer_tab)
         self.viewer_tab.addTab(self.flip_button, "Flip")
         self.viewer_tab.addTab(self.render_button, "Render")
+        self.viewer_tab.addTab(self.caches_tab, "Caches")
+        self.viewer_tab.addTab(self.dependancy_layout, "Dependancy")
         #self.main_layout.addWidget(self.viewerTab)
         #self.h_layout.addWidget()
 
@@ -205,6 +213,24 @@ class asset_view(QtWidgets.QWidget):
         self.main_layout.addLayout(self.h_layout_top)
         self.main_layout.addLayout(self.h_layout)
         self.setLayout(self.main_layout)
+
+    def draw_caches_layout(self):
+        """handle cache layout in the cache tab section"""
+        caches_layout = QtWidgets.QVBoxLayout()
+        self.cache_liste = QtWidgets.QListWidget()
+        list = [] #self.asset.get_caches()
+        #button to update the caches
+        self.update_caches_button = QtWidgets.QPushButton("Update")
+        caches_layout.addWidget(self.update_caches_button)
+        self.update_caches_button.clicked.connect(self.update_caches_datas)
+        self.cache_liste.addItems(list)
+        caches_layout.addWidget(self.cache_liste)
+        caches_layout.addWidget(QtWidgets.QLabel("test"))
+        return caches_layout
+
+    def update_caches_datas(self):
+        caches = self.asset.update_caches_datas()
+        self.cache_liste.addItems(caches)
 
     def save_comment(self):
         text = self.comment_textbox.toPlainText()
@@ -332,6 +358,8 @@ class asset_view(QtWidgets.QWidget):
             self.version_dropdown.removeItem(i)
         versions = self.asset.get_current_versions()
         self.populate_dropdown_version(versions)
+        print(self.asset.current_version.name())
+        self.select_version(self.asset.current_version.name())
 
     def select_subtask(self, selected_button):
         current_subtask = self.asset.current_subtask()
@@ -356,7 +384,9 @@ class asset_view(QtWidgets.QWidget):
         size = round(size,2)
         print("size = " + str(size))
         self.version_size.setText("Size = " + str(size)+"Mb")
-
+        #load comments
+        comment = self.asset.get_comment()
+        self.comment_textbox.setText(comment)
 
     def open_folder(self):
         self.asset.open_folder()
