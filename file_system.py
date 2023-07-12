@@ -158,10 +158,25 @@ class file_system(metaclass=file_system_meta):
         path = os.path.join(*folders)
         os.system(f'start {path}')
 
-    def open_file(self, datas):
+    def get_version_file_path(self, version_datas):
+        """
+        open the file corresponding to the given datas
+        :param dic{} version_datas: dictionary like 'AssetType' : self.__asset_type see Version.datas
+        """
+
         config = self.__configs[self.__current_config_name]
-        print("datas = "+str(datas))
-        path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas) + os.sep + config.asset_file_name.format(datas)
+        print("datas = " + str(version_datas))
+        path = os.path.join(config.project_directory.pattern, config.asset_file_path.format(
+            version_datas), config.asset_file_name.format(version_datas))
+        return path
+
+    def open_file(self, datas):
+        """
+        open the file corresponding to the given datas
+        :param dic{} datas: dictionary from Version.datas
+        """
+
+        path = self.get_path_file(datas)
         os.system(f'start {path}')
 
     def get_render_directory(self,datas):
@@ -409,13 +424,23 @@ class Subtask():
         self.selected_version = Version(asset_type, asset_name, task_name, subtask_name, version, file_name, ext, thumbnail)
         self.__versions = {}
         self.__versions[version] = self.selected_version
+        self.set_current_version(version)
         self.thumbnail=self.selected_version.thumbnail
 
     def add_version(self, version_name, file_name, ext,thumbnail):
+        """
+        :param version_name:
+        :param file_name:
+        :param ext:
+        :param thumbnail:
+        """
+
         #print("add version "+version)
         if version_name not in self.__versions.keys():
             version = Version(self.__asset_type, self.__asset_name, self.__task_name, self.__name,version_name,file_name, ext,thumbnail)
             self.__versions[version_name]=version
+        print("ADDVERSION")
+        self.set_current_version(version_name)
 
     def get_versions(self):
         return self.__versions
@@ -437,7 +462,13 @@ class Subtask():
 class asset():
 
     @property
+    def last_modification(self):
+        return self._last_modification
+
+    @property
     def current_version(self):
+        print("try something")
+        print(f"self.current_task = {self.current_task}")
         return self.current_task.current_subtask().selected_version
 
     @property
@@ -453,9 +484,9 @@ class asset():
         self.type = type
         self.tasks = {} #dic of task element {task_name, Task()}
         self.current_task = None
-        #self.current_version = None
         self.__thumbnails = ""
         self.file_system = file_system()
+        self._last_modification = None
 
     def add_task(self, task_name, subtask_name, version,file_name, ext, thumbnails_path):
         """Add a task if it doesn't exist. Return the new task."""
@@ -464,6 +495,10 @@ class asset():
         if task_name not in self.tasks.keys(): #if it's a new task
             new_task = Task(self.type, self.name, task_name, subtask_name, version,file_name, ext, thumbnails_path)
             self.tasks[task_name]=new_task #add the new task
+            self.set_current_task(task_name)
+            print(f"assetNamee = {self.name}")
+            print(f"updatess {self.current_version}")
+            self.update_last_modified_file(self.current_version.datas)
             if thumbnails_path: #don't override thumbnail when its null
                 print("##Add task thumbnails_path = " + thumbnails_path)
                 self.__thumbnails = thumbnails_path
@@ -477,14 +512,19 @@ class asset():
             self.add_task(task_name, subtask_name, version, thumbnail)'''
 
     def add_version(self,task_name, subtask_name, version, file_name, ext,asset_thumbnail):
-        """create the task if not exist, then add the version to the task"""
+        """
+        create the task if not exist, then add the version to the task
+        :param str file_name: name of the file without any path
+        """
         if asset_thumbnail: #don't overide the thumbnail path if it's empty
             print("##Add version asset_thumbnail = "+asset_thumbnail)
         #print("asset : add_version "+ version)
         if(task_name not in self.tasks.keys()):
             self.add_task(task_name, subtask_name, version, file_name, ext,asset_thumbnail)
         self.tasks[task_name].add_version(subtask_name, version, file_name, ext,asset_thumbnail)
-
+        #checking for the last modification file path
+        print("UPDATEMODIFIEDPATH")
+        self.update_last_modified_file(self.current_version.datas)
         """#self.task. (task)
         if(task in self.tasks): #if the task already exist, add the subtask
             if(subtask in self.tasks[task]):
@@ -496,6 +536,18 @@ class asset():
             self.tasks[task] = [subtask]
             self.versions[subtask] = [version]
         """
+
+    def update_last_modified_file(self, version_datas):
+        """
+        :param Version.datas version_datas:
+        :return:
+        """
+        print(f"file_pathh = {version_datas}")
+        file_path = self.file_system.get_version_file_path(version_datas)
+        last_modified_path = os.path.getmtime(file_path)
+        if not self._last_modification :
+            self._last_modification = last_modified_path
+
     def get_versions(self, task_name, subtask_name):
         #print("get version for task_name = "+task_name+" subtask_name = "+subtask_name)
         return self.tasks[task_name].get_current_versions()

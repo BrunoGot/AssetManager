@@ -71,7 +71,7 @@ class MyWidget( QtWidgets.QWidget):
         return main_layout"""
 
     def display_assets(self):
-
+        print(f"assetslib = {self.assets}")
         nb_assets = len(self.assets)
         row = 4
         print(nb_assets)

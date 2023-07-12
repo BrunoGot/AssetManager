@@ -61,6 +61,7 @@ class LibraryView(QtWidgets.QWidget):
         return main_layout
 
     def display_assets(self):
+        print(f"assetslib = {self.assets.values()}")
 
         nb_assets = len(self.assets)
         row = 5
@@ -69,12 +70,14 @@ class LibraryView(QtWidgets.QWidget):
         print("lines = "+str(lines))
         assets_layout = QtWidgets.QVBoxLayout()
         index = 0
+        sorted_list = sorted(list(self.assets.values()), key=lambda a:a.last_modification, reverse = True)
         for x in range(0, row):
             h_layout = QtWidgets.QHBoxLayout()
             for y in range(0, round(lines)):
-                print("assets.keys() ="+str())
+                print(f"assetskeys() ={self.assets}")
                 if(index<len(list(self.assets))):
-                    asset_button = self.create_asset_button(sorted(self.assets)[index])
+                    print(f"modif = {sorted_list}")
+                    asset_button = self.create_asset_button(sorted_list[index].name)
                     h_layout.addLayout(asset_button)
                     assets_layout.addLayout(h_layout)
                 index += 1
