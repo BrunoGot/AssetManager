@@ -143,7 +143,6 @@ class MainView(QtWidgets.QWidget):
 
     def on_select_items(self,index):
         """callback for when the drop down list is changing"""
-        #todo:code this part
         self.file_system.set_config(index)
         config = self.file_system.get_config()
         self.update_configuration(config)

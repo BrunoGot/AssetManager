@@ -60,43 +60,46 @@ class file_system(metaclass=file_system_meta):
             print("try parsing path : "+file_path)
 
             print(config.asset_file_path.pattern)
-            asset_dir_datas = config.asset_file_path.parse(file_path)
-            asset_file_name_data = config.asset_file_name.parse(os.path.basename(file_path))
-            #file_datas = file_path.split("\\")
-            asset_type = asset_dir_datas["AssetType"]
-            asset_name = asset_dir_datas["AssetName"]
-            asset_task = asset_dir_datas["Task"]
-            print("parsing asset 'asset_name', asset_type = "+asset_type+", asset_task = "+str(asset_task))
-            asset_subtask = asset_dir_datas["Subtask"]
-            asset_work = asset_dir_datas["Version"]
-            asset_file_name = asset_file_name_data["AssetFileName"]
-            asset_ext = asset_file_name_data["Ext"]
-            print(asset_file_name +asset_ext )
+            try:
+                asset_dir_datas = config.asset_file_path.parse(file_path)
+                asset_file_name_data = config.asset_file_name.parse(os.path.basename(file_path))
+                #file_datas = file_path.split("\\")
+                asset_type = asset_dir_datas["AssetType"]
+                asset_name = asset_dir_datas["AssetName"]
+                asset_task = asset_dir_datas["Task"]
+                print("parsing asset 'asset_name', asset_type = "+asset_type+", asset_task = "+str(asset_task))
+                asset_subtask = asset_dir_datas["Subtask"]
+                asset_work = asset_dir_datas["Version"]
+                asset_file_name = asset_file_name_data["AssetFileName"]
+                asset_ext = asset_file_name_data["Ext"]
+                print(asset_file_name +asset_ext )
 
-            #looking for thumbnail :
-            asset_thumbnail = ""
-            picture_folder = self.get_picture_folder(file)
-            if(picture_folder):
-                print("######picture folder found####### : "+picture_folder)
-                pics = os.listdir(picture_folder) #list all pictures
-                for p in pics:
-                    pic_path = picture_folder+os.sep+p
-                    print("pic_path = "+pic_path+" os.path.isfile(p) = "+str(os.path.isfile(pic_path)))
-                    if os.path.isfile(pic_path):
-                        if ".png" in p or ".jpeg" in p: #detect if it's a valid picture
-                            asset_thumbnail = pic_path
-                            break
+                #looking for thumbnail :
+                asset_thumbnail = ""
+                picture_folder = self.get_picture_folder(file)
+                if(picture_folder):
+                    print("######picture folder found####### : "+picture_folder)
+                    pics = os.listdir(picture_folder) #list all pictures
+                    for p in pics:
+                        pic_path = picture_folder+os.sep+p
+                        print("pic_path = "+pic_path+" os.path.isfile(p) = "+str(os.path.isfile(pic_path)))
+                        if os.path.isfile(pic_path):
+                            if ".png" in p or ".jpeg" in p: #detect if it's a valid picture
+                                asset_thumbnail = pic_path
+                                break
 
 
-            if(asset_name not in self.assets): #if its a new asset
-                print("#####new asset detected######")
-                if(asset_thumbnail):
-                    print("####asset_thumbnail = "+asset_thumbnail)
-                new_asset = asset(asset_name,asset_type)
-                new_asset.add_task(asset_task, asset_subtask, asset_work,asset_file_name, asset_ext, asset_thumbnail)
-                self.assets[asset_name]=new_asset
-            else : #if the asset already exist
-                self.assets[asset_name].add_version(asset_task, asset_subtask, asset_work, asset_file_name, asset_ext,asset_thumbnail)
+                if(asset_name not in self.assets): #if its a new asset
+                    print("#####new asset detected######")
+                    if(asset_thumbnail):
+                        print("####asset_thumbnail = "+asset_thumbnail)
+                    new_asset = asset(asset_name,asset_type)
+                    new_asset.add_task(asset_task, asset_subtask, asset_work,asset_file_name, asset_ext, asset_thumbnail)
+                    self.assets[asset_name]=new_asset
+                else : #if the asset already exist
+                    self.assets[asset_name].add_version(asset_task, asset_subtask, asset_work, asset_file_name, asset_ext,asset_thumbnail)
+            except :
+                print("ERROR : problem loading asset "+file_path)
 
         for a in self.assets.keys():
              print("asset : "+a+" tasks = "+str(self.assets[a].tasks.keys()))
