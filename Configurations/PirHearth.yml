@@ -1,0 +1,11 @@
+#Templates :
+AssetFileName : "{AssetFileName}.{Ext}"
+Project : "C:/Users/Natspir/NatspirProd/03_WORK_PIPE/03_PirHeart"
+AssetPath : "{AssetType}\\{AssetName}" #utile ?
+File : "{AssetType}\\{AssetName}\\{Task}\\{Subtask}\\{Version}"
+Workspace : "$File"
+Render : "$Workspace/Render"
+Caches : "$Workspace/Cache"
+Textures : "$Workspace/Textures"
+Flip : "$Workspace/flip"
+JSONEngine : "$File\\{Engine_name}.json"

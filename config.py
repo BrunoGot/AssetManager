@@ -56,7 +56,7 @@ class Config():
     def name(self):
         return self.__name
 
-    def __init__(self, name, config_path = "../Configurations/default_Config.yml"):
+    def __init__(self, name, config_path = "../Configurations/My_Projects.yml"):
         self.key_value = ["$Project", "$AssetPath", "$File", "$Workspace", "$Caches", "$Render", "$Flip", "$Textures", "$AssetFileName"] #
         #dictionary of lucidity template
         self.__name = name

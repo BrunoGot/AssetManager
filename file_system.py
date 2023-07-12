@@ -27,38 +27,61 @@ class file_system(metaclass=file_system_meta):
 
     def __init__(self):
         #folder containing the configuration files
-        self.__config_folder_path = os.path.dirname(__file__)+r"/Configurations/"
+        self.__config_folder_path = os.path.dirname(__file__)+r"/Configurations"
 
-        self.assets = {}  # dic with {assetname, asset}
-        self.__configs = {} #dic containing different pipeline configuration files (that allow to handle different projects) {configName, configClass}
-        self.default_config_name = "default_Config"
-        self.__configs[self.default_config_name] = config.Config(self.default_config_name)
+        self.init_configs()
+
+        self.assets_configs = {self.__current_config_name:{}} #dic wit {config_name, self.assets} #link the list of asset associated to the
+        self.assets = self.assets_configs  # dic with {assetname, asset} todo: will be renamed as current_assets
         #self.config = config.Config("default")
+
+    def init_configs(self):
+        self.__configs = {}  # dic containing different pipeline configuration files (that allow to handle different projects) {configName, configClass}
+        configs = self.__get_config_list()
+        for name, path in configs.items():
+            print("path = "+path)
+            self.__configs[name] = config.Config(name, path)
+        self.default_config_name = "My_Projects"
+        self.__current_config_name = self.default_config_name
+        self.__configs[self.__current_config_name] = config.Config(self.__current_config_name)
+
+    def __get_config_list(self):
+        """list the yml file in the config folder and return a dictionary {config_name, config_path}"""
+        files = os.listdir(self.__config_folder_path)
+        configs = {}
+        for f in files:
+            config_name = f.replace(".yml", "")
+            configs[config_name] = self.__config_folder_path+os.sep+f
+        return configs
+
+    def get_configs(self):
+        return self.__configs
 
     def get_assets(self):
         print("get_assets = "+str(len(self.assets)))
         return self.assets
 
-    def parse_asset_list(self, config_name = "default_Config"):
+    def parse_asset_list(self):
         """todo: parse the assets folder using the config file"""
         #load the configuration file to parse the asset in the project directory
-        config = self.__configs[config_name]
+        config = self.__configs[self.__current_config_name]
         config.list_templates()
 
         asset_dir = config.project_directory.pattern
         houdini_files = glob.glob(asset_dir+"/**/*.hipnc", recursive=True)
-        houdini_assets = []
+        blender_files = glob.glob(asset_dir+"/**/*.blend", recursive=True)
+        asset_files = blender_files+houdini_files
+        assets = []
         #cleanBackuoFiles:
-        for file in houdini_files:
+        for file in asset_files:
             if "backup" not in file:
-                houdini_assets.append(file)
-        print("houdini_assets = "+str(houdini_assets))
+                assets.append(file)
+        print("houdini_assets = "+str(assets))
 
         #analyze all valid paths
-        for file in houdini_assets:
+        for file in assets:
             file_path = file.replace(asset_dir+"\\","" )
             print("try parsing path : "+file_path)
-
             print(config.asset_file_path.pattern)
             try:
                 asset_dir_datas = config.asset_file_path.parse(file_path)
@@ -78,13 +101,13 @@ class file_system(metaclass=file_system_meta):
                 asset_thumbnail = ""
                 picture_folder = self.get_picture_folder(file)
                 if(picture_folder):
-                    print("######picture folder found####### : "+picture_folder)
+                    #print("######picture folder found####### : "+picture_folder)
                     pics = os.listdir(picture_folder) #list all pictures
                     for p in pics:
                         pic_path = picture_folder+os.sep+p
-                        print("pic_path = "+pic_path+" os.path.isfile(p) = "+str(os.path.isfile(pic_path)))
+                        #print("pic_path = "+pic_path+" os.path.isfile(p) = "+str(os.path.isfile(pic_path)))
                         if os.path.isfile(pic_path):
-                            if ".png" in p or ".jpeg" in p: #detect if it's a valid picture
+                            if ".png" in p or ".jpeg" in p or "jpg" in p: #detect if it's a valid picture
                                 asset_thumbnail = pic_path
                                 break
 
@@ -98,10 +121,10 @@ class file_system(metaclass=file_system_meta):
                     self.assets[asset_name]=new_asset
                 else : #if the asset already exist
                     self.assets[asset_name].add_version(asset_task, asset_subtask, asset_work, asset_file_name, asset_ext,asset_thumbnail)
-            except :
-                print("ERROR : problem loading asset "+file_path)
+            except:
+                print("#####ERROR : asset not parsed correctly : "+file_path)
 
-        for a in self.assets.keys():
+        for a in sorted(self.assets):
              print("asset : "+a+" tasks = "+str(self.assets[a].tasks.keys()))
 
         print("assets = ")
@@ -124,8 +147,8 @@ class file_system(metaclass=file_system_meta):
     def load_asset(self):
         pass
 
-    def open_folder(self, datas,config_file="default_Config"):
-        config = self.__configs[config_file]
+    def open_folder(self, datas,):
+        config = self.__configs[self.__current_config_name]
         asset_dir = config.project_directory.pattern
 
         print("file_path = config.asset_file_path = "+config.asset_file_path.pattern)
@@ -135,20 +158,20 @@ class file_system(metaclass=file_system_meta):
         path = os.path.join(*folders)
         os.system(f'start {path}')
 
-    def open_file(self, datas, config_name = "default_Config"):
-        config = self.__configs[config_name]
+    def open_file(self, datas):
+        config = self.__configs[self.__current_config_name]
         print("datas = "+str(datas))
         path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas) + os.sep + config.asset_file_name.format(datas)
         os.system(f'start {path}')
 
-    def get_render_directory(self,datas,config_name="default_Config"):
-        config = self.__configs[config_name]
+    def get_render_directory(self,datas):
+        config = self.__configs[self.__current_config_name]
         path = config.project_directory.pattern + os.sep + config.render_path.format(datas)
         path = path.replace("\\", "/")
         return  path
 
-    def get_flip_directory(self, datas,config_name="default_Config"):
-        config = self.__configs[config_name]
+    def get_flip_directory(self, datas):
+        config = self.__configs[self.__current_config_name]
         path =config.project_directory.pattern+os.sep+ config.flip_path.format(datas)
         path = path.replace("\\","/")
         return path
@@ -158,15 +181,15 @@ class file_system(metaclass=file_system_meta):
         name_render_folder = "render"
         picture_foler = ""
         dir_path = os.path.dirname(file_path)
-        print("###look for picture at file path "+dir_path)
+        #print("###look for picture at file path "+dir_path)
         list_dir = os.listdir(dir_path)
-        print("###listdir = "+str(list_dir))
+        #print("###listdir = "+str(list_dir))
         for dir in list_dir :
             sub_path = dir_path+os.sep+dir
-            print("os.path.isdir(dir) = "+str(os.path.isdir(sub_path)))
+            #print("os.path.isdir(dir) = "+str(os.path.isdir(sub_path)))
             if os.path.isdir(sub_path): #verify it's a directory
                 dir = dir.lower() #set it to lowercase
-                print("###Dir =  " + dir)
+                #print("###Dir =  " + dir)
                 if name_render_folder in dir:
                     picture_foler = sub_path
                     break
@@ -186,17 +209,17 @@ class file_system(metaclass=file_system_meta):
                 total_size += os.path.getsize(f)
         return total_size
 
-    def get_version_size(self, datas, config_name = "default_Config"):
-        config = self.__configs[config_name]
+    def get_version_size(self, datas ):
+        config = self.__configs[self.__current_config_name]
         path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas)
         return self.get_size(path)
 
-    def get_asset_size(self, datas, config_name = "default_Config"):
-        config = self.__configs[config_name]
+    def get_asset_size(self, datas):
+        config = self.__configs[self.__current_config_name]
         path = config.project_directory.pattern+os.sep+ config.asset_path.format(datas)
         return self.get_size(path)
 
-    def detect_software(self, ext, config_name = "default_Config"):
+    def detect_software(self, ext):
         """return the software associated to the selected verion in datas"""
         software = None
         print("ext = "+ext)
@@ -220,17 +243,24 @@ class file_system(metaclass=file_system_meta):
         """return the current config"""
         return self.__configs[self.default_config_name]
 
-    def save_comment(self, datas, text, config_name="default_Config"):
+    def get_config(self, config_name):
+        """return the config at the given name"""
+        config = self.__configs[self.default_config_name]
+        if config_name in self.__configs.keys(): #check if the config exist in the dic
+            config = self.__configs[config_name]
+        return config
+
+    def save_comment(self, datas, text):
         """write the text in a text file"""
-        config = self.__configs[config_name]
+        config = self.__configs[self.__current_config_name]
         file_name = "comment.txt" #todo:move it in the config section
         path = config.project_directory.pattern+os.sep+config.asset_file_path.format(datas)+os.sep+file_name
         f = open(path, "w")
         f.write(text)
         f.close()
 
-    def load_comment(self, datas, config_name="default_Config"):
-        config = self.__configs[config_name]
+    def load_comment(self, datas):
+        config = self.__configs[self.__current_config_name]
         file_name = "comment.txt" #todo:move it in the config section
         path = config.project_directory.pattern+os.sep+config.asset_file_path.format(datas)+os.sep+file_name
         text = ""
@@ -240,12 +270,24 @@ class file_system(metaclass=file_system_meta):
             f.close()
         return text
 
-    def get_engine_json(self,datas, config_name="default_Config"):
-        config = self.__configs[config_name]
+    def get_engine_json(self,datas):
+        config = self.__configs[self.__current_config_name]
         path = config.project_directory.pattern + os.sep + config.json_engine.format(datas)
         print("json path = "+path)
         return path
 
+    def set_current_config(self, config_name):
+        if config_name not in self.assets_configs:
+            self.assets_configs[config_name] = {}
+        self.assets = self.assets_configs[config_name]
+        self.__current_config_name = config_name
+
+    def set_current_config_index(self, config_index):
+        keys = list(self.assets_configs.keys())
+        print("keys = {}".format(keys))
+        config_name = keys[config_index]
+        self.set_current_config(config_name)
+        print("switch to config_name : "+config_name)
 ######################"
 
 class Task():

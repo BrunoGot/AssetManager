@@ -4,12 +4,13 @@ import file_system as fs
 from PySide2 import QtCore, QtGui, QtWidgets
 
 class MainView(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, main_window):
         #GUI
         QtWidgets.QWidget.__init__(self)
         self.file_system = fs.file_system()
         self.init_GUI()
         self.set_default_values()
+        self.main_window = main_window
 
     def init_GUI(self):
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -23,11 +24,11 @@ class MainView(QtWidgets.QWidget):
         self.import_button.setText("Import")
         self.main_layout.addWidget(self.import_button)
 
-        #namle of the configuration
+        #name of the configuration
         self.config_name_layout = QtWidgets.QHBoxLayout()
         self.config_name_label = QtWidgets.QLabel("Config Name : ")
         self.config_name_dropdown = QtWidgets.QComboBox()
-        #self.config_name_dropdown.addItem("default")
+        self.config_name_dropdown.activated.connect(self.on_select_items)
         self.populate_dropdown_config()
         self.config_name_layout.addWidget(self.config_name_label)
         self.config_name_layout.addWidget(self.config_name_dropdown)
@@ -108,10 +109,20 @@ class MainView(QtWidgets.QWidget):
         self.bottom_buttons_layout = QtWidgets.QHBoxLayout()
         self.save_button = QtWidgets.QPushButton()
         self.save_button.setText("Save")
+        self.save_button.clicked.connect(self.on_save_configuration)
         self.bottom_buttons_layout.addWidget(self.save_button)
         self.export_button = QtWidgets.QPushButton()
         self.export_button.setText("Export")
         self.bottom_buttons_layout.addWidget(self.export_button)
+        self.load_button = QtWidgets.QPushButton()
+        self.load_button.setText("Load")
+        self.bottom_buttons_layout.addWidget(self.load_button)
+        self.load_button.clicked.connect(self.on_load_configuration)
+        #self.load_new_button = QtWidgets.QPushButton()
+        #self.load_new_button.setText("Load_new")
+        #self.bottom_buttons_layout.addWidget(self.load_new_button)
+
+
         self.main_layout.addLayout(self.bottom_buttons_layout)
         self.setLayout(self.main_layout)
 
@@ -143,11 +154,14 @@ class MainView(QtWidgets.QWidget):
 
     def on_select_items(self,index):
         """callback for when the drop down list is changing"""
-        self.file_system.set_config(index)
-        config = self.file_system.get_config()
+        #todo:code this part
+        config_name = self.config_name_dropdown.itemText(index)
+        #self.file_system.set_config(index)
+        config = self.file_system.get_config(config_name)
         self.update_configuration(config)
 
     def update_configuration(self, config):
+        self.current_config = config.name
         self.project_input.setText(config.project_directory.pattern)
         self.asset_file_name_input.setText(config.asset_file_name.pattern)
         self.asset_path_input.setText(config.asset_path.pattern)
@@ -157,3 +171,11 @@ class MainView(QtWidgets.QWidget):
         self.flip_input.setText(config.flip_path.pattern)
         self.cache_input.setText(config.caches_path.pattern)
         self.texture_input.setText(config.textures_path.pattern)
+
+    def on_load_configuration(self):
+        self.main_window.add_new_config(self.current_config)
+
+    def on_save_configuration(self):
+        text,ok = QtWidgets.QInputDialog().getText(self, "save configuration", "Config Name", QtWidgets.QLineEdit.Normal) # QFileDialog()#  QTextBrowser(minimumWidth=800,minimumHeight=800)
+        print(text)
+        #todo : save a config file with the good name

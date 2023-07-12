@@ -13,24 +13,28 @@ class LibraryView(QtWidgets.QWidget):
     current_asset = ""
     asset_views = {}
 
-    def __init__(self):
+    def __init__(self, config_name = "My_Projects"):
 
         #datas
         self.file_system = fs.file_system()
+        print("load assets from config name : "+config_name)
+        self.file_system.set_current_config(config_name)
         self.file_system.parse_asset_list()
         self.assets = self.file_system.get_assets() #get the list of all assets to display
         self.default_logo = r"Icons/NoPreview.jpg"
         #GUI
         QtWidgets.QWidget.__init__(self)
 
-        lib_layout = self.lib_view() #crea  te the library view
+        lib_layout = self.lib_view() #create the library view
 
         main_layout = QtWidgets.QVBoxLayout()
         main_layout.addLayout(lib_layout)
         self.setLayout(main_layout)
 
 
+
     def change_view(self, asset):
+        """Display asset window"""
         print("change_view asset type : "+str(type(asset)))
         self.current_asset=asset
         #self.index = (self.index+1)%2
@@ -56,35 +60,23 @@ class LibraryView(QtWidgets.QWidget):
         main_layout.addWidget(self.scroll_layout)
         return main_layout
 
-        """def asset_view(self):
-        asset_name = self.current_asset
-        self.label = QtWidgets.QLabel(asset_name)
-        icon = QtGui.QPixmap('add.jpg')
-        button = QtWidgets.QPushButton()
-        button.setIcon(icon)
-        button.setIconSize(QtCore.QSize(256, 256))
-        main_layout = QtWidgets.QVBoxLayout()
-        main_layout.addWidget(button)
-        main_layout.addWidget(self.label)
-        return main_layout"""
-
     def display_assets(self):
 
         nb_assets = len(self.assets)
-        row = 4
+        row = 5
         print(nb_assets)
-        lines = int(round(nb_assets/row))
+        lines = int(round(nb_assets/row))+1
         print("lines = "+str(lines))
-        assets_layout = QtWidgets.QHBoxLayout()
+        assets_layout = QtWidgets.QVBoxLayout()
         index = 0
         for x in range(0, row):
-            vert_layout = QtWidgets.QVBoxLayout()
+            h_layout = QtWidgets.QHBoxLayout()
             for y in range(0, round(lines)):
                 print("assets.keys() ="+str())
                 if(index<len(list(self.assets))):
-                    asset_button = self.create_asset_button(list(self.assets)[index])
-                    vert_layout.addLayout(asset_button)
-                    assets_layout.addLayout(vert_layout)
+                    asset_button = self.create_asset_button(sorted(self.assets)[index])
+                    h_layout.addLayout(asset_button)
+                    assets_layout.addLayout(h_layout)
                 index += 1
 
         frame_layout = QtWidgets.QWidget()
