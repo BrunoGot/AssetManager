@@ -97,8 +97,6 @@ class LibraryView(QtWidgets.QWidget):
         button = QtWidgets.QPushButton()
         button.setIcon(icon)
         button.setIconSize(QtCore.QSize(256, 256))
-        #print("create_asset_button :: asset tasks = "+str(asset.tasks))
-        #print("type asset = "+str(type(asset)))
         button.clicked.connect(lambda b=True, a= asset : self.change_view(a))
         text = QtWidgets.QLabel(asset_name)
         b_layout = QtWidgets.QVBoxLayout()
@@ -224,7 +222,7 @@ class asset_view(QtWidgets.QWidget):
         return caches_layout
 
     def update_caches_datas(self):
-        caches = self.asset.update_caches_datas()
+        caches = self.asset.get_caches_datas()
         self.cache_liste.addItems(caches)
 
     def save_comment(self):
@@ -245,10 +243,11 @@ class asset_view(QtWidgets.QWidget):
         self.asset = asset
         self.label_title.setText(asset.name)
         self.label_type.setText("Type : "+asset.type)
-        size = asset.total_size/(1024*1024)
-        size = round(size,2)
+        size = asset.total_size
+        """size = asset.total_size/(1024*1024)
+        size = round(size,2)"""
         print("size  = "+str(size) )
-        self.label_total_size.setText("Total size : "+f"{size:,}"+"Mb")
+        self.label_total_size.setText(f"Total size : {size:,}Mb")
         for i in asset.tasks:
             print(i)
             task_button = self.create_task_button(i)
@@ -276,12 +275,17 @@ class asset_view(QtWidgets.QWidget):
         # update render frames
         self.load_frames_for_viewer(self.render_button, rpath)
 
-
     def load_frames_for_viewer(self, anim_button, frame_path):
         """check if the folder is correct and load the frames for the anim buttons"""
-        if (os.path.exists(frame_path)):
-            frames = os.listdir(frame_path)
-            anim_button.setFrames(basePath=frame_path, frames=frames)
+        filter = ["png", "jpg", "jpeg"]
+        path = frame_path
+        frames = self.file_system.get_filtered_files(path,filter)
+        # look for some thumbnail in some fallback folder if no render or flipbook exist
+        if len(frames) == 0:
+            frames = self.file_system.get_filtered_files(self.asset.get_current_version_dir(), filter)
+            path = self.asset.get_current_version_dir()
+        print(f"current version = {self.asset.get_current_version_dir()}, frames = {frames}")
+        anim_button.setFrames(basePath=path, frames=frames)
 
     def populate_dropdown_version(self,versions):
         for v in versions:

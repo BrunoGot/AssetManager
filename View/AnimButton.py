@@ -53,10 +53,10 @@ class AnimButton(QtWidgets.QPushButton):
     def _convertFrame(self, basepath, frames = [], resizeButton = True, speed = 50):
         """load the frames in memory and make it ready to be red by the application"""
         processed = []
-
+        print(f"convert {frames}")
         for i, f in enumerate(frames):
             pix = QtGui.QPixmap(basepath +"/"+f )
-            #print(basepath +"/"+f)
+            print(basepath +"/"+f)
 
 
             # todo :crop the f*cking image pix = pix.scaled(1000,100)

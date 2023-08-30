@@ -46,7 +46,10 @@ class file_system(metaclass=file_system_meta):
         self.__configs[self.__current_config_name] = config.Config(self.__current_config_name)
 
     def __get_config_list(self):
-        """list the yml file in the config folder and return a dictionary {config_name, config_path}"""
+        """
+        list the yml file in the config folder and return a dictionary {config_name, config_path}
+        """
+
         files = os.listdir(self.__config_folder_path)
         configs = {}
         for f in files:
@@ -87,11 +90,15 @@ class file_system(metaclass=file_system_meta):
                 asset_dir_datas = config.asset_file_path.parse(file_path)
                 asset_file_name_data = config.asset_file_name.parse(os.path.basename(file_path))
                 #file_datas = file_path.split("\\")
-                asset_type = asset_dir_datas["AssetType"]
+                asset_type = asset_dir_datas.get("AssetType")
+                if not asset_type:
+                    asset_type = ""
                 asset_name = asset_dir_datas["AssetName"]
                 asset_task = asset_dir_datas["Task"]
                 print("parsing asset 'asset_name', asset_type = "+asset_type+", asset_task = "+str(asset_task))
-                asset_subtask = asset_dir_datas["Subtask"]
+                asset_subtask = asset_dir_datas.get("Subtask")
+                if not asset_subtask:
+                    asset_subtask = ""
                 asset_work = asset_dir_datas["Version"]
                 asset_file_name = asset_file_name_data["AssetFileName"]
                 asset_ext = asset_file_name_data["Ext"]
@@ -111,7 +118,6 @@ class file_system(metaclass=file_system_meta):
                                 asset_thumbnail = pic_path
                                 break
 
-
                 if(asset_name not in self.assets): #if its a new asset
                     print("#####new asset detected######")
                     if(asset_thumbnail):
@@ -121,8 +127,8 @@ class file_system(metaclass=file_system_meta):
                     self.assets[asset_name]=new_asset
                 else : #if the asset already exist
                     self.assets[asset_name].add_version(asset_task, asset_subtask, asset_work, asset_file_name, asset_ext,asset_thumbnail)
-            except:
-                print("#####ERROR : asset not parsed correctly : "+file_path)
+            except Exception as e:
+                print(f"#####ERROR : asset not parsed correctly : {file_path} | err = {e.args}")
 
         for a in sorted(self.assets):
              print("asset : "+a+" tasks = "+str(self.assets[a].tasks.keys()))
@@ -146,6 +152,18 @@ class file_system(metaclass=file_system_meta):
 
     def load_asset(self):
         pass
+
+    def get_filtered_files(self,dir_path, extensions):
+        """
+        return a list of file containing in the directory path end ing with the extension in the list
+        :param str dir_path: path to the directory to look into
+        :param [str] extensions: list of extensions we want to get
+        :return [str] filtered_files: list of filename corresponding to the filter in this folder
+        """
+        filtered_files = []
+        if os.path.exists(dir_path):
+            filtered_files = [f for f in os.listdir(dir_path) if any(f.endswith(ext) for ext in extensions)]
+        return filtered_files
 
     def open_folder(self, datas,):
         config = self.__configs[self.__current_config_name]
@@ -179,11 +197,29 @@ class file_system(metaclass=file_system_meta):
         path = self.get_path_file(datas)
         os.system(f'start {path}')
 
-    def get_render_directory(self,datas):
+    def get_render_directory(self, datas):
         config = self.__configs[self.__current_config_name]
         path = config.project_directory.pattern + os.sep + config.render_path.format(datas)
         path = path.replace("\\", "/")
-        return  path
+        return path
+
+    def get_cache_directory(self, datas):
+        config = self.__configs[self.__current_config_name]
+        return self.get_directory_path(config, datas, config.caches_path)
+
+    def get_directory_path(self, config, datas, config_template_type):
+        """
+        todo: the deal with this functin is to avoid redondance in between get_cache_dir, get_render_dir etc.
+        return the formatted path according to the type of path contained by config_path_type
+        :param Config config: the configuration to use the template from.
+        :param datas: dic of element to fill the template with
+        :param config_template_type: template path from config.py config.caches_path or config.render_path
+        :return str: path to teh desired folder (cache, render, flip)
+        """
+
+        path = os.path.join(config.project_directory.pattern, config_template_type.format(datas))
+        path = path.replace("\\", "/")
+        return path
 
     def get_flip_directory(self, datas):
         config = self.__configs[self.__current_config_name]
@@ -218,11 +254,17 @@ class file_system(metaclass=file_system_meta):
         print("get_size path = "+path)
         for dirpath, dirnames, filenames in os.walk(path):
             for i in filenames:
-                #print("filename = "+i)
                 f = os.path.join(dirpath,i)
                 #print("f = "+f)
                 total_size += os.path.getsize(f)
+        total_size = total_size/(1024 * 1024)
+        total_size = round(total_size, 2)
         return total_size
+
+    def get_file_size(self, file_path):
+        size = os.path.getsize(file_path)
+        size = size / (1024 * 1024)
+        return round(size, 2)
 
     def get_version_size(self, datas ):
         config = self.__configs[self.__current_config_name]
@@ -306,7 +348,7 @@ class file_system(metaclass=file_system_meta):
 ######################"
 
 class Task():
-    def __init__(self, asset_type, asset_name, task_name, subtask_name, version,file_name, ext, thumbnail=""):
+    def __init__(self, asset_type   , asset_name, task_name, subtask_name, version,file_name, ext, thumbnail=""):
         self.__asset_name = asset_name
         self.__name = task_name
         self.__asset_type = asset_type
@@ -479,7 +521,7 @@ class asset():
         }
         return self.file_system.get_asset_size(datas)
 
-    def __init__(self, name, type ):
+    def __init__(self, name, type="" ):
         self.name = name
         self.type = type
         self.tasks = {} #dic of task element {task_name, Task()}
@@ -601,6 +643,10 @@ class asset():
         return flip_dir
         #return os.path.dirname(self.thumbnail())
 
+    def get_current_version_dir(self):
+        version_dir = os.path.dirname(self.file_system.get_version_file_path(self.datas_info))
+        return version_dir
+
     def current_render_dir(self):
         """if render directory exist return it"""
         datas = self.current_version.datas
@@ -608,6 +654,21 @@ class asset():
         render_dir = self.file_system.get_render_directory(datas)
         #file_system.get_render_directory(self.name, self.current_task, self.current_subtask(), self.current_version)
         return render_dir
+
+    def get_current_caches_dir(self):
+        """
+        return the cache folder path of the current version of the asset
+        """
+        cache_dir = self.file_system.get_cache_directory(self.datas_info)
+        return cache_dir
+
+    @property
+    def datas_info(self):
+        """return the data dic for this Asset"""
+        datas = self.current_version.datas
+        datas['AssetType'] = self.type
+        return datas
+
     def get_render_folder(self):
         pass #self.asset_path+sub
 
@@ -621,6 +682,7 @@ class asset():
 
     def thumbnail(self):
         return self.get_last_thumbnail()
+
     def save_comment(self, text):
         datas = self.current_version.datas
         self.file_system.save_comment(datas, text)
@@ -631,10 +693,21 @@ class asset():
     """def get_caches(self):
         return the list of caches of the current asset file
     """
-    def update_caches_datas(self):
-        print("update caches datas")
-        caches = self.current_version.get_caches_datas()
-        return caches
+    def get_caches_datas(self):
+        cache_dir_path = self.get_current_caches_dir()
+        print(f"update caches datas {cache_dir_path}")
+        if not os.path.exists(cache_dir_path):
+            list_info_caches = ["No Caches have been saved"]
+        else:
+            caches = os.listdir(cache_dir_path)
+            list_info_caches = []
+            #set info for each cache line
+            for cache in caches:
+                cache_path = os.path.join(cache_dir_path,cache)
+                size = self.file_system.get_file_size(cache_path)
+                list_info_caches.append(f"{cache} - {size:,}")
+            #this is for caches metadatas stored in a json file : caches = self.current_version.get_caches_datas()
+        return list_info_caches
 
 
 if __name__ == "__main__":

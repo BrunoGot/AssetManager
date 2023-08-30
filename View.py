@@ -1,4 +1,4 @@
-import sys
+'''import sys
 import os
 from os.path import basename
 
@@ -232,9 +232,16 @@ class asset_view(QtWidgets.QWidget):
 
     def load_frames_for_viewer(self, anim_button, frame_path):
         """check if the folder is correct and load the frames for the anim buttons"""
-        if (os.path.exists(frame_path)):
+        frames = []
+        if os.path.exists(frame_path):
             frames = os.listdir(frame_path)
-            anim_button.setFrames(basePath=frame_path, frames=frames)
+            #anim_button.setFrames(basePath=frame_path, frames=frames)
+        #look for some thumbnail in some fallback folder if no render or flipbook exist
+        if len(frames) == 0 and os.path.exists(self.asset.get_current_version_path()):
+            frames = os.listdir(self.asset.get_current_version_path())
+        print(f"current version = {self.asset.get_current_version_path()}, frames = {len(frames)}")
+        anim_button.setFrames(basePath=frame_path, frames=frames)
+
 
     def populate_dropdown_version(self,versions):
         for v in versions:
@@ -337,4 +344,4 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main()
+    main()'''

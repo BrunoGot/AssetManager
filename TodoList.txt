@@ -1,9 +1,5 @@
 todo list :
- - Set a tab gui that separate tutorials from assets
  - display size information of asset/caches/renders/flips
- - implement open file button
- - add comment text input
- - set switch button to display flipbook or renders
  - links flips/renders according to the selecvted version
 
  Config template rules :
@@ -26,6 +22,7 @@ todo list :
       cache = Workspace/cache/Task/Subtask/Version
 
  todo :
-  - definir un template yml
-  - le recuperer avec lucidity
-  -lire les donnés depuis le file system
+  - lire les donnés depuis le file system
+  - lister les caches et les fichier qui les utilisent
+  - improve le template manager
+
