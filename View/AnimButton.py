@@ -45,7 +45,8 @@ class AnimButton(QtWidgets.QPushButton):
             if i%2==0:
                 selected_frames.append(f)
             i+=1"""
-        selected_frames = frames
+        first_few_frames = frames[:10] #just pick up the 10 first frames to avoid blocking process
+        selected_frames = first_few_frames
         self.__frames = self._convertFrame(basePath, selected_frames, resizeButton, speed)
         #print("self.__frames = "+str(self.__frames))
         self._setFrame(0)

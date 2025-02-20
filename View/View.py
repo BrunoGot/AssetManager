@@ -270,6 +270,7 @@ class asset_view(QtWidgets.QWidget):
         self.version_size.setText("Size = "+str(size))"""
 
     def update_buttons_viewer(self, fpath, rpath):
+        print("update button temporairement prend les 10 premieres frames")
         # update the flip frames
         self.load_frames_for_viewer(self.flip_button, fpath)
         # update render frames
