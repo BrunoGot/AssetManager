@@ -45,7 +45,7 @@ class AnimButton(QtWidgets.QPushButton):
             if i%2==0:
                 selected_frames.append(f)
             i+=1"""
-        first_few_frames = frames[:10] #just pick up the 10 first frames to avoid blocking process
+        first_few_frames = frames[:50] #just pick up the 10 first frames to avoid blocking process
         selected_frames = first_few_frames
         self.__frames = self._convertFrame(basePath, selected_frames, resizeButton, speed)
         #print("self.__frames = "+str(self.__frames))
@@ -54,10 +54,10 @@ class AnimButton(QtWidgets.QPushButton):
     def _convertFrame(self, basepath, frames = [], resizeButton = True, speed = 50):
         """load the frames in memory and make it ready to be red by the application"""
         processed = []
-        print(f"convert {frames}")
+        # print(f"convert {frames}")
         for i, f in enumerate(frames):
             pix = QtGui.QPixmap(basepath +"/"+f )
-            print(basepath +"/"+f)
+            # print(basepath +"/"+f)
 
 
             # todo :crop the f*cking image pix = pix.scaled(1000,100)
@@ -85,7 +85,7 @@ class AnimButton(QtWidgets.QPushButton):
         """this method set wich frame is displayed on the button"""
         if((self.__frames and self.__frameSize and index <=(self.__numberOfFrames-1))==True):
             self.setIcon(self.__frames[index])
-            print("set icon : "+str(self.__frames[index]))
+            # print("set icon : "+str(self.__frames[index]))
             #self.setIconSize(self.__frameSize)
 
     def setSize(self, width, height):
