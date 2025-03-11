@@ -1,40 +1,47 @@
-#todo : generate conformed thumbnail automatically if it's not already exist in a thumbnail folder
-
 from PySide2 import QtGui, QtCore, QtWidgets
 import os
 
-class AnimButton(QtWidgets.QPushButton):
-    '''this class implement the animation button. When its clicked, the animation is playing'''
 
-    def __init__(self,parent=None):
-        QtWidgets.QPushButton.__init__(self,parent)
+class AnimButton(QtWidgets.QPushButton):
+    """
+    this class implement the animation button. When its clicked, the animation is playing a sequence of frame
+    todo : generate conformed thumbnail automatically if it's not already exist in a thumbnail folder
+        - Possibility to run the animation in a specific player
+        - possibility to optimize the Flipbook/render, save it in a soecific cache
+        - load the sequence of image in a separate thread to avoid any freeze from the ui
+        - split the file per class
+        - remove unused element
+    """
+
+    def __init__(self, parent=None):
+        QtWidgets.QPushButton.__init__(self, parent)
 
         self.__frames = None
         self.__basePath = None
         self.__framesPath = None
         self.__frameSize = None
         self.__numberOfFrames = None
-        self.__timer = RepeatTimer(10,100)
-        #self.__timer.setInterval(100)
+        self.__timer = RepeatTimer(10, 100)
+        # self.__timer.setInterval(100)
 
-        self.__isStarted = False #check if the timer is running or not
+        self.__isStarted = False  # check if the timer is running or not
         self.clicked.connect(self.playAnim)
         self.__timer.timeoutCount.connect(self._setFrame)
-        #convertedFrames = self.setFrames(path, frames)
+        # convertedFrames = self.setFrames(path, frames)
 
-        #self.setIconSize(QtCore.QSize(100,100))
-        #self.__timer.start()
+        # self.setIconSize(QtCore.QSize(100,100))
+        # self.__timer.start()
 
-    def playAnim(self,index):
-        #print("cliiiick")
-        if(self.__isStarted==False):
+    def playAnim(self, index):
+        # print("cliiiick")
+        if (self.__isStarted == False):
             self.__timer.start()
-            self.__isStarted=True
+            self.__isStarted = True
         else:
             self.__timer.stop()
             self.__isStarted = False
 
-    def setFrames(self, basePath=None, frames = [], resizeButton = True, speed = 60):
+    def setFrames(self, basePath=None, frames=[], resizeButton=True, speed=60):
         # sort the list correctly :
         frames = sorted(frames, key=len)
         selected_frames = []
@@ -45,27 +52,26 @@ class AnimButton(QtWidgets.QPushButton):
             if i%2==0:
                 selected_frames.append(f)
             i+=1"""
-        first_few_frames = frames[:50] #just pick up the 10 first frames to avoid blocking process
+        first_few_frames = frames[:50]  # just pick up the 10 first frames to avoid blocking process
         selected_frames = first_few_frames
         self.__frames = self._convertFrame(basePath, selected_frames, resizeButton, speed)
-        #print("self.__frames = "+str(self.__frames))
+        # print("self.__frames = "+str(self.__frames))
         self._setFrame(0)
 
-    def _convertFrame(self, basepath, frames = [], resizeButton = True, speed = 50):
+    def _convertFrame(self, basepath, frames=[], resizeButton=True, speed=50):
         """load the frames in memory and make it ready to be red by the application"""
         processed = []
         # print(f"convert {frames}")
         for i, f in enumerate(frames):
-            pix = QtGui.QPixmap(basepath +"/"+f )
+            pix = QtGui.QPixmap(basepath + "/" + f)
             # print(basepath +"/"+f)
 
+            # todo :crop the image pix = pix.scaled(1000,100)
 
-            # todo :crop the f*cking image pix = pix.scaled(1000,100)
-
-            #if it's the first frame, extract the size
-            if(i==0):
+            # if it's the first frame, extract the size
+            if (i == 0):
                 self.__frameSize = pix.size()
-            #convert to QIcon
+            # convert to QIcon
             im = QtGui.QIcon(pix)
             processed.append(im)
 
@@ -81,30 +87,30 @@ class AnimButton(QtWidgets.QPushButton):
 
         return processed
 
-    def _setFrame(self,index=0):
+    def _setFrame(self, index=0):
         """this method set wich frame is displayed on the button"""
-        if((self.__frames and self.__frameSize and index <=(self.__numberOfFrames-1))==True):
+        if ((self.__frames and self.__frameSize and index <= (self.__numberOfFrames - 1)) == True):
             self.setIcon(self.__frames[index])
             # print("set icon : "+str(self.__frames[index]))
-            #self.setIconSize(self.__frameSize)
+            # self.setIconSize(self.__frameSize)
 
     def setSize(self, width, height):
-        self.setIconSize(QtCore.QSize(width,height))
-        #self.setSize()
+        self.setIconSize(QtCore.QSize(width, height))
+        # self.setSize()
         self.setGeometry(0, 0, width, height)
 
 
 class RepeatTimer(QtCore.QTimer):
-    #public signal emit when the timeout signal is emitted aswell but passing the iteration index
+    # public signal emit when the timeout signal is emitted aswell but passing the iteration index
     timeoutCount = QtCore.Signal(int)
-    #public signal wich get fired at the end of all iterations
+    # public signal wich get fired at the end of all iterations
     endRepeat = QtCore.Signal()
 
-    def __init__(self, numberOfRepeats = 1, delay =10):
+    def __init__(self, numberOfRepeats=1, delay=10):
         QtCore.QTimer.__init__(self)
 
-        self.__numberOfRepeats =1
-        self.numberOfRepeats= numberOfRepeats
+        self.__numberOfRepeats = 1
+        self.numberOfRepeats = numberOfRepeats
         self.__delay = 10
         self.delay = delay
         self.__internalCounter = 0
@@ -116,7 +122,7 @@ class RepeatTimer(QtCore.QTimer):
 
     @delay.setter
     def delay(self, value):
-        if(value >=0 and type(value).__name__ == "int"):
+        if value >= 0 and type(value).__name__ == "int":
             self.__delay = value
             self.setInterval(value)
 
@@ -126,11 +132,11 @@ class RepeatTimer(QtCore.QTimer):
 
     @numberOfRepeats.setter
     def numberOfRepeats(self, value):
-        if(value >=0 and type(value).__name__ == "int"):
+        if value >= 0 and type(value).__name__ == "int":
             self.__numberOfRepeats = value
 
     def __eval(self):
-        if self.__internalCounter >= self.__numberOfRepeats-1:
+        if self.__internalCounter >= self.__numberOfRepeats - 1:
             self.stop()
             self.endRepeat.emit()
             self.timeoutCount.emit(self.__internalCounter)
@@ -138,18 +144,20 @@ class RepeatTimer(QtCore.QTimer):
 
         else:
             self.timeoutCount.emit(self.__internalCounter)
-            self.__internalCounter +=1
+            self.__internalCounter += 1
+
 
 def main():
     app = QtWidgets.QApplication([])
 
-    path = r"C:\\Users\\Natspir\\NatspirProd\\03_WORK_PIPE\\01_ASSET_3D\\Enviro\\Fog\\FX\\FX\\work_v001\\Flip"
+    path = r"set/a/path"
     frames = os.listdir(path)
 
     temp = AnimButton(path, frames)
-    temp.setSize(200,100)
+    temp.setSize(200, 100)
     temp.show()
     app.exec_()
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

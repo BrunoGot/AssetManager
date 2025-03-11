@@ -1,7 +1,7 @@
 import sys
 from PySide2 import QtWidgets, QtGui
 import View
-import ConfigView
+import config_view
 import file_system as fs
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -44,7 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
     def open_config_menu(self):
-        self.config_window = ConfigView.MainView(self)
+        self.config_window = config_view.ConfigView(self)
         self.config_window.show()
 
     def add_new_config(self, config_name):

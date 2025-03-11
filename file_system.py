@@ -1,15 +1,9 @@
-import os
 import glob
+import os
+
 import config
-from software import *
+from software import Software
 
-
-# config = "{assetType}/{assetName}/{workspace}/{task}/{subtask}/{versions}"
-# "Buildings\Tower1\Modelisation\Modelisation\work_v003"
-
-# "Buildings\Tower1\Modelisation\work_v003"
-
-# asset_dir = r"C:\Users\Natspir\NatspirProd\03_WORK_PIPE\01_ASSET_3D"
 
 class file_system_meta(type):
     '''Used to implement singleton'''
@@ -23,7 +17,15 @@ class file_system_meta(type):
 
 
 class file_system(metaclass=file_system_meta):
-    # asset_list = []
+    """
+    This class is supposed to do the link between the file system of the current operating system
+    and the file system defined by the pipeline configuration files.
+    It have been set as a singleton class that contain different configutaion type. This allow th user to switch
+    from a project to another with different configuration for each project.
+    This class is supposed to be used as a singleton tho, as it the same object that is used to load
+    and interact ith the different project.
+    """
+
     @property
     def config_folder_path(self):
         return self.__config_folder_path

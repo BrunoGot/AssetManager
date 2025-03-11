@@ -1,11 +1,20 @@
-#windows to edit the configuration file
+# windows to edit the configuration file
 import os
 import file_system as fs
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2 import QtWidgets
 
-class MainView(QtWidgets.QWidget):
+
+class ConfigView(QtWidgets.QWidget):
+    """
+    This class is used to edit and manage the different configuration files that will be use by the file system
+    to parse an asset.
+    todo : re-design the ui with something a bit more user-friendly.
+        Add information about how to setup paths
+        Add possibility to design the path structure yourself and add as many subtasks as you want
+    """
+
     def __init__(self, main_window):
-        #GUI
+        # GUI
         QtWidgets.QWidget.__init__(self)
         self.file_system = fs.file_system()
         self.init_GUI()
@@ -19,12 +28,12 @@ class MainView(QtWidgets.QWidget):
         self.main_layout.addWidget(self.configuration_file_label)
         self.description_label = QtWidgets.QLabel("Configure here the template of your pipeline")
         self.main_layout.addWidget(self.description_label)
-        #button to import configuration file
+        # button to import configuration file
         self.import_button = QtWidgets.QPushButton()
         self.import_button.setText("Import")
         self.main_layout.addWidget(self.import_button)
 
-        #name of the configuration
+        # name of the configuration
         self.config_name_layout = QtWidgets.QHBoxLayout()
         self.config_name_label = QtWidgets.QLabel("Config Name : ")
         self.config_name_dropdown = QtWidgets.QComboBox()
@@ -34,7 +43,7 @@ class MainView(QtWidgets.QWidget):
         self.config_name_layout.addWidget(self.config_name_dropdown)
         self.main_layout.addLayout(self.config_name_layout)
 
-        #Asset File Name : name of the file
+        # Asset File Name : name of the file
         self.asset_file_name_layout = QtWidgets.QHBoxLayout()
         self.asset_file_name_label = QtWidgets.QLabel("File Name Template: ")
         self.asset_file_name_input = QtWidgets.QLineEdit()
@@ -58,7 +67,7 @@ class MainView(QtWidgets.QWidget):
         self.asset_path_layout.addWidget(self.asset_path_input)
         self.main_layout.addLayout(self.asset_path_layout)
 
-        #Path of the file in the asset folder
+        # Path of the file in the asset folder
         self.file_layout = QtWidgets.QHBoxLayout()
         self.file_label = QtWidgets.QLabel("Asset File Path : ")
         self.file_input = QtWidgets.QLineEdit()
@@ -66,7 +75,7 @@ class MainView(QtWidgets.QWidget):
         self.file_layout.addWidget(self.file_input)
         self.main_layout.addLayout(self.file_layout)
 
-        #Path for the worksapce
+        # Path for the worksapce
         self.workspace_layout = QtWidgets.QHBoxLayout()
         self.workspace_label = QtWidgets.QLabel("Workspace : ")
         self.workspace_input = QtWidgets.QLineEdit()
@@ -118,33 +127,32 @@ class MainView(QtWidgets.QWidget):
         self.load_button.setText("Load")
         self.bottom_buttons_layout.addWidget(self.load_button)
         self.load_button.clicked.connect(self.on_load_configuration)
-        #self.load_new_button = QtWidgets.QPushButton()
-        #self.load_new_button.setText("Load_new")
-        #self.bottom_buttons_layout.addWidget(self.load_new_button)
-
+        # self.load_new_button = QtWidgets.QPushButton()
+        # self.load_new_button.setText("Load_new")
+        # self.bottom_buttons_layout.addWidget(self.load_new_button)
 
         self.main_layout.addLayout(self.bottom_buttons_layout)
         self.setLayout(self.main_layout)
 
     def set_default_values(self):
         """parse the file, foreach line, assign the value to the right parameter"""
-        #get the default config file
+        # get the default config file
 
         config_name = self.file_system.default_config_name
         index = 0
         for i in range(self.config_name_dropdown.count()):
-            if(self.config_name_dropdown.itemText(i)==config_name):
+            if (self.config_name_dropdown.itemText(i) == config_name):
                 index = i
-            print(self.config_name_dropdown.itemText(i) +" - "+config_name)
+            print(self.config_name_dropdown.itemText(i) + " - " + config_name)
         self.config_name_dropdown.setCurrentIndex(index)
 
-        #self.config_name_input.setText(config.name)
+        # self.config_name_input.setText(config.name)
         config = self.file_system.get_config_file()
         self.update_configuration(config)
 
     def populate_dropdown_config(self):
         """used to populate the dropdown config name """
-        print("path = "+__file__)
+        print("path = " + __file__)
         files = os.listdir(self.file_system.config_folder_path)
         configs = {}
         for f in files:
@@ -152,11 +160,11 @@ class MainView(QtWidgets.QWidget):
             configs[config_name] = f
         self.config_name_dropdown.addItems(configs.keys())
 
-    def on_select_items(self,index):
+    def on_select_items(self, index):
         """callback for when the drop down list is changing"""
-        #todo:code this part
+        # todo:code this part
         config_name = self.config_name_dropdown.itemText(index)
-        #self.file_system.set_config(index)
+        # self.file_system.set_config(index)
         config = self.file_system.get_config(config_name)
         self.update_configuration(config)
 
@@ -176,6 +184,5 @@ class MainView(QtWidgets.QWidget):
         self.main_window.add_new_config(self.current_config)
 
     def on_save_configuration(self):
-        text,ok = QtWidgets.QInputDialog().getText(self, "save configuration", "Config Name", QtWidgets.QLineEdit.Normal) # QFileDialog()#  QTextBrowser(minimumWidth=800,minimumHeight=800)
-        print(text)
-        #todo : save a config file with the good name
+        QtWidgets.QInputDialog().getText(self, "save configuration", "Config Name",
+                                                    QtWidgets.QLineEdit.Normal)  # QFileDialog()#  QTextBrowser(minimumWidth=800,minimumHeight=800)

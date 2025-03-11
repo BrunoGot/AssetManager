@@ -11,6 +11,10 @@ import yaml
 import lucidity
 
 class Config():
+    """
+    This class make the link between the configuration files set by the user as a '.yml' file
+    and the different path that will be used by the program to access the different datas on the file system.
+    """
 
     @property
     def json_engine(self):

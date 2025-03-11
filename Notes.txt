@@ -1,7 +1,0 @@
-Liste des caches :
-.bgeos file reader
-.abc
-
-liste des .hdas
-
-Liste des textures
