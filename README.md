@@ -25,6 +25,7 @@ Below few picture and a use case of this tool for a video mapping project. In th
 
   Asset View
   ![Capture d'écran 2025-03-11 132433](https://github.com/user-attachments/assets/17c97eed-d06c-4331-97d0-a4cbbd9388d7)
+  ![Capture d'écran 2025-03-11 134220](https://github.com/user-attachments/assets/d016c994-570f-4d8f-9490-3506acf1a7f8)
   ![Capture d'écran 2025-03-11 134028](https://github.com/user-attachments/assets/b6902bfc-6261-43fc-b6d3-50a5930c6f88)
 
   Use Case for a video mapping : 
@@ -32,3 +33,4 @@ Below few picture and a use case of this tool for a video mapping project. In th
 
   Different project configuration possible
 ![Capture d'écran 2025-03-11 134924](https://github.com/user-attachments/assets/e5636e70-eda4-4750-a9db-fb093316879c)
+
