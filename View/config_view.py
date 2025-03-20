@@ -173,7 +173,7 @@ class ConfigView(QtWidgets.QWidget):
         self.project_input.setText(config.project_directory.pattern)
         self.asset_file_name_input.setText(config.asset_file_name.pattern)
         self.asset_path_input.setText(config.asset_path.pattern)
-        self.file_input.setText(config.asset_file_path.pattern)
+        self.file_input.setText(config.asset_file_path_dir.pattern)
         self.workspace_input.setText(config.workspace_path.pattern)
         self.render_input.setText(config.render_path.pattern)
         self.flip_input.setText(config.flip_path.pattern)

@@ -2,7 +2,8 @@
 AssetFileName : "{AssetFileName}.{Ext}"
 Project : "C:/Users/Natspir/NatspirProd/03_WORK_PIPE/01_ASSET_3D"
 AssetPath : "{AssetType}\\{AssetName}" #utile ?
-File : "{AssetType}\\{AssetName}\\{Task}\\{Subtask}\\{Version}"
+FileDir : "$AssetPath\\{Task}\\{Subtask}\\{Version}"
+File : "$FileDir\\$AssetFileName"
 Workspace : "$File"
 Render : "$Workspace/Render"
 Caches : "$Workspace/Cache"

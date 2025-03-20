@@ -91,9 +91,9 @@ class file_system(metaclass=file_system_meta):
         for file in assets:
             file_path = file.replace(asset_dir + "\\", "")
             print("try parsing path : " + file_path)
-            print(config.asset_file_path.pattern)
+            print(config.asset_file_path_dir.pattern)
             try:
-                asset_dir_datas = config.asset_file_path.parse(file_path)
+                asset_dir_datas = config.asset_file_path_dir.parse(file_path)
                 asset_file_name_data = config.asset_file_name.parse(os.path.basename(file_path))
                 # file_datas = file_path.split("\\")
                 asset_type = asset_dir_datas.get("AssetType")
@@ -177,23 +177,28 @@ class file_system(metaclass=file_system_meta):
         config = self.__configs[self.__current_config_name]
         asset_dir = config.project_directory.pattern
 
-        print("file_path = config.asset_file_path = " + config.asset_file_path.pattern)
-        file_path = config.asset_file_path.format(datas)
+        print("file_path = config.asset_file_path_dir = " + config.asset_file_path_dir.pattern)
+        file_path = config.asset_file_path_dir.format(datas)
         folders = [asset_dir, file_path]
 
         path = os.path.join(*folders)
         os.system(f'start {path}')
 
-    def get_version_file_path(self, version_datas):
+    def get_asset_file_path(self, version_datas):
         """
-        open the file corresponding to the given datas
-        :param dic{} version_datas: dictionary like 'AssetType' : self.__asset_type see Version.datas
+        return the full path of the asset_file according to the given datas
+        Args:
+            version_datas (dict[str,str]) : dictionary containing the different keys values for
+                                            the config.asset_file_path template.
+                                            see more info about this template requirement in
+                                            asset_file_path property of config.py
+        Exemple :
+            datas[AssetName:"TestAsset", "Version":"001"]
+            self.get_asset_file_path(datas) #output : r"TestAsset/..../001/TestAsset__001.blend"
         """
 
         config = self.__configs[self.__current_config_name]
-        print("datas = " + str(version_datas))
-        path = os.path.join(config.project_directory.pattern, config.asset_file_path.format(
-            version_datas), config.asset_file_name.format(version_datas))
+        path = os.path.join(config.project_directory.pattern, config.asset_file_path.format(version_datas))
         return path
 
     def open_file(self, datas):
@@ -202,7 +207,7 @@ class file_system(metaclass=file_system_meta):
         :param dic{} datas: dictionary from Version.datas
         """
 
-        path = self.get_path_file(datas)
+        path = self.get_asset_file_path(datas)
         os.system(f'start {path}')
 
     def get_render_directory(self, datas):
@@ -276,7 +281,7 @@ class file_system(metaclass=file_system_meta):
 
     def get_version_size(self, datas):
         config = self.__configs[self.__current_config_name]
-        path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas)
+        path = config.project_directory.pattern + os.sep + config.asset_file_path_dir.format(datas)
         return self.get_size(path)
 
     def get_asset_size(self, datas):
@@ -319,7 +324,7 @@ class file_system(metaclass=file_system_meta):
         """write the text in a text file"""
         config = self.__configs[self.__current_config_name]
         file_name = "comment.txt"  # todo:move it in the config section
-        path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas) + os.sep + file_name
+        path = config.project_directory.pattern + os.sep + config.asset_file_path_dir.format(datas) + os.sep + file_name
         f = open(path, "w")
         f.write(text)
         f.close()
@@ -327,7 +332,7 @@ class file_system(metaclass=file_system_meta):
     def load_comment(self, datas):
         config = self.__configs[self.__current_config_name]
         file_name = "comment.txt"  # todo:move it in the config section
-        path = config.project_directory.pattern + os.sep + config.asset_file_path.format(datas) + os.sep + file_name
+        path = config.project_directory.pattern + os.sep + config.asset_file_path_dir.format(datas) + os.sep + file_name
         text = ""
         if os.path.exists(path):
             f = open(path, "r")
@@ -599,7 +604,7 @@ class asset():
         :return:
         """
         print(f"file_pathh = {version_datas}")
-        file_path = self.file_system.get_version_file_path(version_datas)
+        file_path = self.file_system.get_asset_file_path(version_datas)
         last_modified_path = os.path.getmtime(file_path)
         if not self._last_modification:
             self._last_modification = last_modified_path
@@ -657,7 +662,7 @@ class asset():
         # return os.path.dirname(self.thumbnail())
 
     def get_current_version_dir(self):
-        version_dir = os.path.dirname(self.file_system.get_version_file_path(self.datas_info))
+        version_dir = os.path.dirname(self.file_system.get_asset_file_path(self.datas_info))
         return version_dir
 
     def current_render_dir(self):
